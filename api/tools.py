@@ -118,6 +118,20 @@ def get_args(
 
 	return game_args
 
+def lazy_download_file(url: str, filename: pathlib.Path, s = 3):
+	try:
+		response = requests.get(url)
+		response.raise_for_status()
+		with open(filename, 'wb') as f:
+			if not f.writable: raise IOError(f"File {filename} is not writable")
+			os.makedirs(os.path.dirname(filename), mode=777, exist_ok=True)
+			os.chmod(filename, mode=777)
+			f.write(response.content)
+			f.close()
+	except requests.exceptions.RequestException as e:
+		time.sleep(s)
+		lazy_download_file(url, filename, s)
+
 def download_file(url: str, filename: pathlib.Path, s: int = 3, chunk_size: int = 8192, max_threads: int = 4):
 	try:
 		os.makedirs(os.path.dirname(filename), exist_ok=True)
