@@ -10,11 +10,20 @@ import subprocess
 
 # Setting defaults dirs
 
-ver_dir = "versions"
-lib_dir = "libraries"
-assets_dir = "assets"
-java_dir = "java"
-game_dir = "home"
+os.chmod("./", mode=777)
+
+root_dir = "./"
+
+if os.path.exists(root_dir):
+	os.chmod(root_dir, mode=777)
+else:
+	os.makedirs(root_dir, mode=777, exist_ok=True)
+
+ver_dir = root_dir + "versions"
+lib_dir = root_dir + "libraries"
+assets_dir = root_dir + "assets"
+java_dir = root_dir + "java"
+game_dir = root_dir + "home"
 
 os.makedirs(ver_dir, mode=777, exist_ok=True)
 os.makedirs(lib_dir, mode=777, exist_ok=True)

@@ -125,7 +125,9 @@ def download_file(url: str, filename: pathlib.Path, s: int = 3):
 		response = requests.get(url)
 		response.raise_for_status()
 		with open(filename, 'wb') as f:
-			if not f.writable: raise IOError(f"File {filename} is not writable")	
+			if not f.writable: raise IOError(f"File {filename} is not writable")
+			os.makedirs(os.path.dirname(filename), mode=777, exist_ok=True)
+			os.chmod(filename, mode=777)
 			f.write(response.content)
 			f.close()
 	except requests.exceptions.RequestException as e:
