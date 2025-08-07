@@ -198,7 +198,7 @@ def main():
 
 	os_ls = {
 		"windows": "windows-x64",
-		"linux": "linux-x64",
+		"linux": "linux",
 		"mac-os": "mac-os-arm64"
 	}
 

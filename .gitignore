@@ -1,5 +1,5 @@
-.minecraft
-.vscode
+.minecraft/
+.vscode/
 api/__pycache__
 update_repo.cmd
 update_repo.sh
