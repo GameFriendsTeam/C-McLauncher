@@ -48,6 +48,11 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 
 				if os.path.exists(full_path): os.remove(full_path)
 
+				parent_dir = os.path.dirname(full_path)
+				if not os.access(parent_dir, os.W_OK):
+					print(f"Error: {parent_dir} - access denied")
+					continue
+
 				try:
 					os.symlink(target, full_path)
 
