@@ -71,7 +71,7 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 			url = info["downloads"]["raw"]["url"]
 			file_sha1_expected = info["downloads"]["raw"].get("sha1")
 			need_download = True
-			
+
 			if os.path.exists(full_path):
 				if file_sha1_expected:
 					try:
@@ -81,8 +81,3 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 
 			if need_download:
 				download_file(url, full_path)
-				# Проверяем sha1 после скачивания
-				if file_sha1_expected:
-					try:
-						if file_sha1(full_path) != file_sha1_expected: download_file(url, full_path)
-					except Exception: pass

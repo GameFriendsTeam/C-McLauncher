@@ -32,12 +32,5 @@ def download_game(q, ver_dir, releases: dict[str, str]):
 		if need_download:
 			print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%   ", end="\r", flush=True)
 			download_file(url, file_path)
-			# Проверяем sha1 после скачивания
-			if sha1:
-				try:
-					if file_sha1(file_path) != sha1:
-						download_file(url, file_path)
-				except Exception:
-					pass
 
 	q.put(versions)

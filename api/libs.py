@@ -50,13 +50,6 @@ def download_libs(q, lib_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 				os.makedirs(lib_clean_path, mode=777, exist_ok=True)
 				print(f"Downloading libraries: {str(round(current_lib_int/libs_count*100))}% | {str(round(current_ver_int/ver_count*100))}%   ", end="\r", flush=True)
 				download_file(lib_url, lib_full_path)
-				# Проверяем sha1 после скачивания
-				if lib_sha1:
-					try:
-						if file_sha1(lib_full_path) != lib_sha1:
-							download_file(lib_url, lib_full_path)
-					except Exception:
-						pass
 
 	q.put(libraries)
 	return

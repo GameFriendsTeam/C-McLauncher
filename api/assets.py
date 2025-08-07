@@ -32,14 +32,8 @@ def download_indexes(q, indexes_dir: str, releases: dict[str, dict]) -> dict[str
 		if need_download:
 			os.makedirs(indexes_dir, mode=777, exist_ok=True)
 			print(f"Downloading indexes: {str(round(current/count*100))}%", end="\r", flush=True)
+
 			lazy_download_file(asset_url, indexes_path)
-			# Проверяем sha1 после скачивания
-			if asset_sha1:
-				try:
-					if file_sha1(indexes_path) != asset_sha1:
-						lazy_download_file(asset_url, indexes_path)
-				except Exception:
-					pass
 
 	q0 = mp.Queue()
 	assets = download_assets(q0, indexes_dir+"/../objects", indexes)
@@ -79,14 +73,7 @@ def download_assets(q, assets_dir, downloaded):
 
 	def download_one(args):
 		url, path, sha1 = args
-		try:
-			lazy_download_file(url, path)
-			# Проверяем sha1 после скачивания
-			from api.tools import file_sha1 as check_sha1
-			if check_sha1(path) != sha1:
-				lazy_download_file(url, path)
-		except Exception as e:
-			print(f"Ошибка при скачивании {url}: {e}")
+		lazy_download_file(url, path)
 
 	if assets_to_download:
 		with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
