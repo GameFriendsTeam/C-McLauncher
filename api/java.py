@@ -45,7 +45,10 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 				continue
 			elif type == "link":
 				target = info["target"]
-				os.symlink(target, full_path)
+				try:
+					os.symlink(target, full_path)
+				except PermissionError as e:
+					print(f"Ошибка при создании символической ссылки {full_path}: {e}")
 				continue
 
 			url = info["downloads"]["raw"]["url"]
