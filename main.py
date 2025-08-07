@@ -14,7 +14,10 @@ os_name = os_name.replace("darwin", "mac-os")
 
 # Setting defaults dirs
 
-root_dir = str(pathlib.Path("./"))
+if os.name == "nt":
+	root_dir = str(pathlib.Path("./"))
+else:
+	root_dir = str(pathlib.Path("~/"))
 
 os.chmod(root_dir, mode=777)
 
