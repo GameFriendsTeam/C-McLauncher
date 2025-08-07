@@ -14,20 +14,22 @@ os_name = os_name.replace("darwin", "mac-os")
 
 # Setting defaults dirs
 
-os.chmod("./", mode=777)
+root_dir = str(pathlib.Path("./"))
 
-root_dir = "./.minecraft/"
+os.chmod(root_dir, mode=777)
 
-if os.path.exists(root_dir):
-	os.chmod(root_dir, mode=777)
+game_root_dir = str(pathlib.Path(f"{root_dir}/.minecraft/"))
+
+if os.path.exists(game_root_dir):
+	os.chmod(game_root_dir, mode=777)
 else:
-	os.makedirs(root_dir, mode=777, exist_ok=True)
+	os.makedirs(game_root_dir, mode=777, exist_ok=True)
 
-ver_dir = root_dir + "versions"
-lib_dir = root_dir + "libraries"
-assets_dir = root_dir + "assets"
-java_dir = root_dir + "java"
-game_dir = root_dir + "home"
+ver_dir = str(pathlib.Path(game_root_dir + "versions"))
+lib_dir = str(pathlib.Path(game_root_dir + "libraries"))
+assets_dir = str(pathlib.Path(game_root_dir + "assets"))
+java_dir = str(pathlib.Path(root_dir + "java"))
+game_dir = str(pathlib.Path(game_root_dir + "home"))
 
 os.makedirs(ver_dir, mode=777, exist_ok=True)
 os.makedirs(lib_dir, mode=777, exist_ok=True)
