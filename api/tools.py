@@ -122,6 +122,7 @@ def get_args(
 
 	return game_args
 
+
 def lazy_download_file(url: str, filename: pathlib.Path, s = 3):
 	try:
 		response = requests.get(url)
@@ -136,7 +137,13 @@ def lazy_download_file(url: str, filename: pathlib.Path, s = 3):
 		time.sleep(s)
 		lazy_download_file(url, filename, s)
 
-def download_file(url: str, filename: pathlib.Path, s: int = 3, chunk_size: int = 8192, max_threads: int = 4):
+def download_file(
+		url: str, filename: pathlib.Path, s: int = 3, legacy_mode: bool = False,
+		chunk_size: int = 8192, max_threads: int = 4
+	):
+	if legacy_mode:
+		return lazy_download_file(url, filename, s)
+
 	try:
 		os.makedirs(os.path.dirname(filename), exist_ok=True)
 		with requests.get(url, stream=True) as response:
@@ -168,6 +175,7 @@ def download_file(url: str, filename: pathlib.Path, s: int = 3, chunk_size: int 
 		time.sleep(s)
 		download_file(url, filename, s)
 
+
 def send_get(url: str, s: int = 3) -> object:
 	content = None
 	try:
@@ -181,6 +189,7 @@ def send_get(url: str, s: int = 3) -> object:
 		content = send_get(url)
 
 	return content
+
 
 def unzip_jar(target_path, out_path):
 	try:

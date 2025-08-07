@@ -214,27 +214,27 @@ def main():
 	#####################
 	#  Start minecraft  #
 	#####################
-	print("Waiting download game..."+" "*10)
+	print("Waiting game..."+" "*10)
 	game_versions = q0.get()
 	p0.join()
 	p0.close()
 
-	print("Waiting download libraries..."+" "*10)
+	print("Waiting libraries..."+" "*10)
 	libraries = q1.get()
 	p1.join()
 	p1.close()
 
-	print("Waiting download assets..."+" "*10)
+	print("Waiting assets..."+" "*10)
 	indexes, assets = q2.get()
 	p2.join()
 	p2.close()
 
-	print("Waiting download natives..."+" "*10)
+	print("Waiting natives..."+" "*10)
 	natives = q3.get()
 	p3.join()
 	p3.close()
 
-	print("Waiting download java..."+" "*10)
+	print("Waiting java..."+" "*10)
 	javas = q4.get()
 	p4.join()
 	p4.close()
