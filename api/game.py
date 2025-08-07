@@ -1,5 +1,5 @@
 import os
-from api.tools import download_file
+from api.tools import download_file, file_sha1
 
 def download_game(q, ver_dir, releases: dict[str, str]):
 	versions = {}
@@ -9,6 +9,7 @@ def download_game(q, ver_dir, releases: dict[str, str]):
 	for version, data in releases.items():
 		current_ver_int += 1
 		url = data["downloads"]["client"]["url"]
+		sha1 = data["downloads"]["client"]["sha1"]
 
 		dir_for_ver = f"{ver_dir}/{version}"
 		file_path = f"{dir_for_ver}/{version}.jar"
@@ -17,9 +18,26 @@ def download_game(q, ver_dir, releases: dict[str, str]):
 
 		versions[version] = file_path
 
-		if os.path.exists(file_path): continue
+		need_download = True
+		if os.path.exists(file_path):
+			if sha1:
+				try:
+					if file_sha1(file_path) == sha1:
+						need_download = False
+				except Exception:
+					pass
+			else:
+				need_download = False
 
-		print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%   ", end="\r", flush=True)
-		download_file(url, file_path)
+		if need_download:
+			print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%   ", end="\r", flush=True)
+			download_file(url, file_path)
+			# Проверяем sha1 после скачивания
+			if sha1:
+				try:
+					if file_sha1(file_path) != sha1:
+						download_file(url, file_path)
+				except Exception:
+					pass
 
 	q.put(versions)

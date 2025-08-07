@@ -122,19 +122,16 @@ def get_args(
 
 def download_file(url: str, filename: pathlib.Path, s: int = 3):
 	try:
-		response = requests.get(url)
-		response.raise_for_status()
-		with open(filename, 'wb') as f:
-			if not f.writable: raise IOError(f"File {filename} is not writable")
-			os.makedirs(os.path.dirname(filename), mode=777, exist_ok=True)
-			os.chmod(filename, mode=777)
-			f.write(response.content)
-			f.close()
+		os.makedirs(os.path.dirname(filename), exist_ok=True)
+		with requests.get(url, stream=True) as response:
+			response.raise_for_status()
+			with open(filename, 'wb') as f:
+				for chunk in response.iter_content(chunk_size=8192):
+					if chunk:
+						f.write(chunk)
 	except requests.exceptions.RequestException as e:
-		print(f"Error downloading file {filename}: {e}.\nWaiting {s} seconds...")
 		time.sleep(s)
-		print(f"Retrying download for {filename}...")
-		download_file(url, filename)
+		download_file(url, filename, s)
 
 def send_get(url: str, s: int = 3) -> object:
 	content = None
@@ -168,3 +165,14 @@ def get_filename_from_url(url, default = "null"):
 		filename = os.path.basename(parsed.path)
 		return filename
 	except: return default
+
+def file_sha1(path):
+	import hashlib
+	h = hashlib.sha1()
+	with open(path, 'rb') as f:
+		while True:
+			chunk = f.read(8192)
+			if not chunk:
+				break
+			h.update(chunk)
+	return h.hexdigest()

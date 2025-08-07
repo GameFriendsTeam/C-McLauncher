@@ -1,6 +1,6 @@
 import json
 import os
-from api.tools import download_file
+from api.tools import download_file, file_sha1
 
 def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> dict[str, str]:
 	javas = {}
@@ -12,17 +12,25 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 
 		version = data["version"]["name"]
 		url = data["manifest"]["url"]
+		asset_sha1 = data["manifest"]["sha1"]
 
 		jre_dir = java_dir + "/" + codename
 		file_path = jre_dir + "/" + "/manifest.json"
 
+		need_download = True
 		if os.path.exists(file_path):
-			with open(file_path, 'r') as f:
-				javas[codename] = json.load(f)
-			continue
+			if asset_sha1:
+				try:
+					if file_sha1(file_path) == asset_sha1:
+						need_download = False
+				except Exception:
+					pass
+			else:
+				need_download = False
 
 		os.makedirs(jre_dir, mode=777, exist_ok=True)
-		download_file(url, file_path)
+		if need_download:
+			download_file(url, file_path)
 		with open(file_path, 'r') as f:
 			javas[codename] = json.load(f)
 
@@ -68,6 +76,24 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 				continue
 
 			url = info["downloads"]["raw"]["url"]
+			file_sha1_expected = info["downloads"]["raw"].get("sha1")
+			need_download = True
+			if os.path.exists(full_path):
+				if file_sha1_expected:
+					try:
+						if file_sha1(full_path) == file_sha1_expected:
+							need_download = False
+					except Exception:
+						pass
+				else:
+					need_download = False
 
-			if os.path.exists(full_path): continue
-			download_file(url, full_path)
+			if need_download:
+				download_file(url, full_path)
+				# Проверяем sha1 после скачивания
+				if file_sha1_expected:
+					try:
+						if file_sha1(full_path) != file_sha1_expected:
+							download_file(url, full_path)
+					except Exception:
+						pass

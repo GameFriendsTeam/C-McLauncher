@@ -1,5 +1,6 @@
 .minecraft/
 .vscode/
 api/__pycache__
+java
 update_repo.cmd
 update_repo.sh
