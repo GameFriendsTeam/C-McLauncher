@@ -3,9 +3,9 @@ from urllib.parse import urlparse
 
 def normalize_path(p):
 	if os.name == "nt":
-		return str(p).replace('/', '\\')
+		return str(pathlib.PurePath(p)).replace('/', '\\')
 
-	return str(p).replace('\\', '/')
+	return str(pathlib.PurePath(p)).replace('\\', '/')
 
 def build_classpath(mc_ver, mc_dir, version_data):
 	cp_paths = []
@@ -127,15 +127,17 @@ def lazy_download_file(url: str, filename: pathlib.Path, s = 3):
 	try:
 		response = requests.get(url)
 		response.raise_for_status()
+		dir_path = os.path.dirname(filename)
+		if dir_path and not os.path.exists(dir_path):
+			os.makedirs(dir_path, mode=0o777, exist_ok=True)
 		with open(filename, 'wb') as f:
-			if not f.writable: raise IOError(f"File {filename} is not writable")
-			os.makedirs(os.path.dirname(filename), mode=777, exist_ok=True)
-			os.chmod(filename, mode=777)
 			f.write(response.content)
-			f.close()
 	except requests.exceptions.RequestException as e:
 		time.sleep(s)
 		lazy_download_file(url, filename, s)
+	except PermissionError as e:
+		print(f"[PermissionError] {e}")
+		raise
 
 def download_file(
 		url: str, filename: pathlib.Path, s: int = 3, legacy_mode: bool = False,
