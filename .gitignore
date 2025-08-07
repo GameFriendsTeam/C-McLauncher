@@ -1,0 +1,9 @@
+.vscode
+api/__pycache__
+libraries
+versions
+assets
+home
+java
+logs
+hs_*.log
