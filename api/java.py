@@ -58,35 +58,31 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 					os.symlink(target, full_path)
 
 					if not os.path.exists(target):
-						raise FileNotFoundError(f"Target not found: {target}")
-					
+						raise FileNotFoundError(f"Target not found: {dir_of_java + '/' + target}")
+
 				except PermissionError as e:
 					print(f"Error: {full_path} - permission denied")
 
 				except FileNotFoundError as e:
-					print(f"Error: {target} not exists")
+					print(f"Error: {dir_of_java + '/' + target} not exists")
 
 				continue
 
 			url = info["downloads"]["raw"]["url"]
 			file_sha1_expected = info["downloads"]["raw"].get("sha1")
 			need_download = True
+			
 			if os.path.exists(full_path):
 				if file_sha1_expected:
 					try:
-						if file_sha1(full_path) == file_sha1_expected:
-							need_download = False
-					except Exception:
-						pass
-				else:
-					need_download = False
+						if file_sha1(full_path) == file_sha1_expected: need_download = False
+					except Exception: pass
+				else: need_download = False
 
 			if need_download:
 				download_file(url, full_path)
 				# Проверяем sha1 после скачивания
 				if file_sha1_expected:
 					try:
-						if file_sha1(full_path) != file_sha1_expected:
-							download_file(url, full_path)
-					except Exception:
-						pass
+						if file_sha1(full_path) != file_sha1_expected: download_file(url, full_path)
+					except Exception: pass
