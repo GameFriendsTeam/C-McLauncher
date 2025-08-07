@@ -16,7 +16,7 @@ os_name = os_name if not os.path.exists("/storage") else "android"
 # Setting defaults dirs
 
 root_dir = str(pathlib.Path("./"))
-path_for_java = str(pathlib.Path(root_dir if os.name != "android" else f"~"))
+path_for_java = str(pathlib.Path(root_dir if os.name != "android" else Path.home()))
 
 os.chmod(root_dir, mode=777)
 
