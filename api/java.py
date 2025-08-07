@@ -6,6 +6,8 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 	javas = {}
 
 	for codename, data in runtime_data.items():
+		if len(data) < 1:
+			continue
 		data = data[0]
 
 		version = data["version"]["name"]
