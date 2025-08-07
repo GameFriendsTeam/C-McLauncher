@@ -43,7 +43,11 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 			if type == "directory":
 				os.makedirs(full_path, mode=777, exist_ok=True)
 				continue
-			
+			elif type == "link":
+				target = info["downloads"]["raw"]["url"]
+				os.symlink(target, full_path)
+				continue
+
 			url = info["downloads"]["raw"]["url"]
 
 			if os.path.exists(full_path): continue
