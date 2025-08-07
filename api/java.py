@@ -45,10 +45,21 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 				continue
 			elif type == "link":
 				target = info["target"]
+
+				if os.path.exists(full_path): os.remove(full_path)
+
 				try:
 					os.symlink(target, full_path)
+
+					if not os.path.exists(target):
+						raise FileNotFoundError(f"Target not found: {target}")
+					
 				except PermissionError as e:
-					print(f"Ошибка при создании символической ссылки {full_path}: {e}")
+					print(f"Error:  {full_path}: {e}")
+
+				except FileNotFoundError as e:
+					print(f"Error: {target} not exists")
+					
 				continue
 
 			url = info["downloads"]["raw"]["url"]
