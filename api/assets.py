@@ -1,6 +1,6 @@
 import json
 import os
-from api.tools import get_filename_from_url, download_file, file_sha1, normalize_path
+from api.tools import get_filename_from_url, download_file, file_sha1, normalize_path, lazy_download_file
 import multiprocessing as mp
 
 def download_indexes(q, indexes_dir: str, releases: dict[str, dict]) -> dict[str, str]:
@@ -32,12 +32,12 @@ def download_indexes(q, indexes_dir: str, releases: dict[str, dict]) -> dict[str
 		if need_download:
 			os.makedirs(indexes_dir, mode=777, exist_ok=True)
 			print(f"Downloading indexes: {str(round(current/count*100))}%", end="\r", flush=True)
-			download_file(asset_url, indexes_path)
+			lazy_download_file(asset_url, indexes_path)
 			# Проверяем sha1 после скачивания
 			if asset_sha1:
 				try:
 					if file_sha1(indexes_path) != asset_sha1:
-						download_file(asset_url, indexes_path)
+						lazy_download_file(asset_url, indexes_path)
 				except Exception:
 					pass
 
@@ -52,7 +52,6 @@ def download_assets(q, assets_dir, downloaded):
 	Параллельная загрузка ассетов с помощью ThreadPoolExecutor.
 	"""
 	import concurrent.futures
-	from api.tools import file_sha1, lazy_download_file
 	assets = {}
 	assets_to_download = []
 	# Собираем все объекты для скачивания
