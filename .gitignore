@@ -6,4 +6,6 @@ assets
 home
 java
 logs
+update_repo.cmd
+update_repo.sh
 hs_*.log
