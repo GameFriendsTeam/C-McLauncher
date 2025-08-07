@@ -12,7 +12,7 @@ import subprocess
 
 os.chmod("./", mode=777)
 
-root_dir = "./"
+root_dir = "./.minecraft"
 
 if os.path.exists(root_dir):
 	os.chmod(root_dir, mode=777)

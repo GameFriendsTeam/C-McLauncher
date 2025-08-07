@@ -1,11 +1,5 @@
+.minecraft
 .vscode
 api/__pycache__
-libraries
-versions
-assets
-home
-java
-logs
 update_repo.cmd
 update_repo.sh
-hs_*.log
