@@ -55,11 +55,11 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 						raise FileNotFoundError(f"Target not found: {target}")
 					
 				except PermissionError as e:
-					print(f"Error:  {full_path}: {e}")
+					print(f"Error: {full_path} - permission denied")
 
 				except FileNotFoundError as e:
 					print(f"Error: {target} not exists")
-					
+
 				continue
 
 			url = info["downloads"]["raw"]["url"]
