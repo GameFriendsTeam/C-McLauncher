@@ -1,7 +1,11 @@
 import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
 
-def normalize_path(p): return str(p).replace('/', '\\')
+def normalize_path(p):
+	if os.name == "nt":
+		return str(p).replace('/', '\\')
+
+	return str(p).replace('\\', '/')
 
 def build_classpath(mc_ver, mc_dir, version_data):
 	cp_paths = []
