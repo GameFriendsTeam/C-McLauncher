@@ -30,7 +30,7 @@ def download_game(q, ver_dir, releases: dict[str, str]):
 				need_download = False
 
 		if need_download:
-			print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%   ", end="\r", flush=True)
+			print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%"+" "*10, end="\r", flush=True)
 			download_file(url, file_path)
 
 	q.put(versions)

@@ -31,7 +31,7 @@ def download_indexes(q, indexes_dir: str, releases: dict[str, dict]) -> dict[str
 
 		if need_download:
 			os.makedirs(indexes_dir, mode=777, exist_ok=True)
-			print(f"Downloading indexes: {str(round(current/count*100))}%", end="\r", flush=True)
+			print(f"Downloading indexes: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
 
 			lazy_download_file(asset_url, indexes_path)
 
@@ -47,18 +47,24 @@ def download_assets(q, assets_dir, downloaded):
 	"""
 	import concurrent.futures
 	assets = {}
-	assets_to_download = []
-	# Собираем все объекты для скачивания
+	count = len(downloaded)
+	current = 0
+	
 	for name, path in downloaded.items():
+		current += 1
+
 		with open(path+"/"+name+".json") as f:
 			data = json.load(f)
 			objects = data["objects"]
+
 			for obj_name, entry in objects.items():
 				hash = entry["hash"]
 				subdir = hash[0:2]
+
 				file_path = assets_dir + "/" + subdir + "/" + hash
 				assets[obj_name] = file_path
 				obj_sha1 = hash
+
 				need_download = True
 				if os.path.exists(file_path):
 					try:
@@ -69,13 +75,8 @@ def download_assets(q, assets_dir, downloaded):
 				if need_download:
 					obj_url = "https://resources.download.minecraft.net/" + subdir + "/" + hash
 					os.makedirs(assets_dir + "/" + subdir, mode=777, exist_ok=True)
-					assets_to_download.append((obj_url, file_path, obj_sha1))
+					
+					print(f"Downloading assets: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
+					download_file(obj_url, file_path)
 
-	def download_one(args):
-		url, path, sha1 = args
-		lazy_download_file(url, path)
-
-	if assets_to_download:
-		with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-			list(executor.map(download_one, assets_to_download))
 	return assets
