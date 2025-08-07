@@ -123,7 +123,8 @@ def get_args(
 	return game_args
 
 
-def download_file(url: str, filename: pathlib.Path, s=3, max_retries=5):
+def download_file(url: str, filename: str, s=3, max_retries=5):
+	filename = pathlib.Path(filename)
 	dir_path = filename.parent
 	if dir_path and not dir_path.exists():
 		dir_path.mkdir(mode=0o777, parents=True, exist_ok=True)
