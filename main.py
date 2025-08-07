@@ -190,8 +190,10 @@ def main():
 	#  Downloading natives  #
 	#########################
 
+	os_name_for_natives = os_name if os_name != "android" else "linux"
+
 	q3 = mp.Queue()
-	p3 = mp.Process(target=download_natives, args=(q3, ver_dir, downloaded, os_name), name="downloading natives")
+	p3 = mp.Process(target=download_natives, args=(q3, ver_dir, downloaded, os_name_for_natives), name="downloading natives")
 	p3.start()
 
 	processes.append(p3)
@@ -203,6 +205,7 @@ def main():
 	os_ls = {
 		"windows": "windows-x64",
 		"linux": "linux",
+		"android": "linux",
 		"mac-os": "mac-os-arm64"
 	}
 
