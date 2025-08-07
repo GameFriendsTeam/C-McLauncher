@@ -14,10 +14,12 @@ os_name = os_name.replace("darwin", "mac-os")
 
 # Setting defaults dirs
 
+root_dir = str(pathlib.Path("./"))
+
 if os.name == "nt":
-	root_dir = str(pathlib.Path("./"))
+	path_for_java = str(pathlib.Path(root_dir))
 else:
-	root_dir = str(pathlib.Path("~/"))
+	path_for_java = str(pathlib.Path(f"~"))
 
 os.chmod(root_dir, mode=777)
 
@@ -31,7 +33,7 @@ else:
 ver_dir = str(pathlib.Path(game_root_dir + "/versions"))
 lib_dir = str(pathlib.Path(game_root_dir + "/libraries"))
 assets_dir = str(pathlib.Path(game_root_dir + "/assets"))
-java_dir = str(pathlib.Path(root_dir + "/java"))
+java_dir = str(pathlib.Path(path_for_java + f"/{"" if os.name == "nt" else "."}java"))
 game_dir = str(pathlib.Path(game_root_dir + "/home"))
 
 os.makedirs(ver_dir, mode=777, exist_ok=True)
