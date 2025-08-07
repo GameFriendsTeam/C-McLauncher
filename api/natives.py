@@ -2,7 +2,7 @@ import os, json
 from api.tools import download_file, unzip_jar
 from urllib.parse import urlparse
 
-def download_natives(q, releases: dict[str, dict], os_name: str) -> dict[str, list]:
+def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -> dict[str, list]:
 	natives = {}
 
 	global_count = len(releases)
@@ -11,7 +11,7 @@ def download_natives(q, releases: dict[str, dict], os_name: str) -> dict[str, li
 	for version, data in releases.items():
 		current_global += 1
 
-		target_dir = f"versions/{version}/natives"
+		target_dir = f"{ver_dir}/{version}/natives"
 
 		natives[version] = []
 

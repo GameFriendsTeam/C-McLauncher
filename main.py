@@ -5,8 +5,12 @@ from api.assets import download_assets, download_indexes
 from api.natives import download_natives, unzip
 from api.libs import download_libs
 from api.game import download_game
+from platform import system
 import multiprocessing as mp
 import subprocess
+
+os_name = system().lower()
+os_name = os_name.replace("darwin", "mac-os")
 
 # Setting defaults dirs
 
@@ -40,7 +44,7 @@ def start_mine(
 		java_path, username, Xms, Xmx, 
 		width: int = 925, height: int = 525
 	) -> str:
-	global assets_dir
+	global assets_dir, ver_dir
 	jvm_args = [f"-Xms{Xms}M", f"-Xmx{Xmx}M", "-Dfile.encoding=UTF-8"]
 	classpath = build_classpath(version, pathlib.Path(mc_dir), version_data)
 	asset_index = version_data["assetIndex"]["id"]
@@ -48,7 +52,7 @@ def start_mine(
 	game_args = get_args(username, version, mc_dir, assets_dir, asset_index)
 
 	main_class = version_data["mainClass"]
-	natives_dir = normalize_path(os.path.abspath(f"versions/{version}/natives/"))
+	natives_dir = normalize_path(os.path.abspath(f"{ver_dir}/{version}/natives/"))
 
 	cmd_line = [os.path.abspath(java_path)]
 	cmd_line.extend(jvm_args)
@@ -98,7 +102,17 @@ def join_all(th_s):
 ##########
 
 def main():
-	global ver_dir, lib_dir, assets_dir, game_dir
+	global ver_dir, lib_dir, assets_dir, game_dir, os_name
+
+	#####################
+	#  Print base data  #
+	#####################
+
+	print(f"You're OS: {os_name}")
+	print(F"Versions dir: {ver_dir}")
+	print(f"Libraries dir: {lib_dir}")
+	print(f"Assets dir: {assets_dir}")
+	print(f"Game root dir: {game_dir}")
 
 	#######################
 	#  Request to mojang  #
@@ -106,7 +120,6 @@ def main():
 
 	content = send_get("https://launchermeta.mojang.com/mc/game/version_manifest.json")
 	data = json.loads(content)["versions"]
-	os_name = "windows"
 
 	releases = {}
 	downloaded = {}
@@ -174,7 +187,7 @@ def main():
 	#########################
 
 	q3 = mp.Queue()
-	p3 = mp.Process(target=download_natives, args=(q3, downloaded, os_name), name="downloading natives")
+	p3 = mp.Process(target=download_natives, args=(q3, ver_dir, downloaded, os_name), name="downloading natives")
 	p3.start()
 
 	processes.append(p3)
