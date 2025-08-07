@@ -123,60 +123,30 @@ def get_args(
 	return game_args
 
 
-def lazy_download_file(url: str, filename: pathlib.Path, s = 3):
-	try:
-		response = requests.get(url)
-		response.raise_for_status()
-		dir_path = os.path.dirname(filename)
-		if dir_path and not os.path.exists(dir_path):
-			os.makedirs(dir_path, mode=0o777, exist_ok=True)
-		with open(filename, 'wb') as f:
-			f.write(response.content)
-	except requests.exceptions.RequestException as e:
-		time.sleep(s)
-		lazy_download_file(url, filename, s)
-	except PermissionError as e:
-		print(f"[PermissionError] {e}")
-		raise
-
-def download_file(
-		url: str, filename: pathlib.Path, s: int = 3, legacy_mode: bool = False,
-		chunk_size: int = 8192, max_threads: int = 4
-	):
-	if legacy_mode:
-		return lazy_download_file(url, filename, s)
-
-	try:
-		os.makedirs(os.path.dirname(filename), exist_ok=True)
-		with requests.get(url, stream=True) as response:
+def download_file(url: str, filename: pathlib.Path, s=3, max_retries=5):
+	dir_path = filename.parent
+	if dir_path and not dir_path.exists():
+		dir_path.mkdir(mode=0o777, parents=True, exist_ok=True)
+	
+	for attempt in range(max_retries + 1):
+		try:
+			response = requests.get(url, timeout=(3.05, 27))
 			response.raise_for_status()
+			
 			with open(filename, 'wb') as f:
-				# Read and write chunks in parallel using threads
-				def writer(q):
-					while True:
-						chunk = q.pop(0) if q else None
-						if chunk is None:
-							break
-						f.write(chunk)
-				chunks = []
-				threads = []
-				for chunk in response.iter_content(chunk_size=chunk_size):
-					if chunk:
-						chunks.append(chunk)
-						if len(chunks) >= max_threads:
-							t = threading.Thread(target=writer, args=(chunks,))
-							t.start()
-							threads.append(t)
-							chunks = []
-				# Write remaining chunks
-				for chunk in chunks:
-					f.write(chunk)
-				for t in threads:
-					t.join()
-	except requests.exceptions.RequestException as e:
-		time.sleep(s)
-		download_file(url, filename, s)
-
+				f.write(response.content)
+			return  # Успешная загрузка
+		
+		except requests.exceptions.RequestException as e:
+			if attempt < max_retries:
+				print(f"Attempt {attempt + 1} failed: {e}. Retrying in {s}s...")
+				time.sleep(s)
+			else:
+				raise ConnectionError(f"Failed after {max_retries} attempts") from e
+		
+		except PermissionError as e:
+			print(f"[PermissionError] {e}")
+			raise
 
 def send_get(url: str, s: int = 3) -> object:
 	content = None

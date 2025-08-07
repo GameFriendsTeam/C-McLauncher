@@ -1,4 +1,4 @@
-from api.tools import build_classpath, download_file, lazy_download_file, normalize_path, run_process, send_get, get_args
+from api.tools import build_classpath, download_file, normalize_path, run_process, send_get, get_args
 import requests, json, os, tqdm, time, pathlib, zipfile, math
 from api.java import download_java_manifests, download_java
 from api.assets import download_assets, download_indexes
@@ -152,7 +152,7 @@ def main():
 		if not os.path.exists(f"{ver_dir}/{release}"):
 			os.mkdir(f"{ver_dir}/{release}", mode=777)
 
-		lazy_download_file(url, file)
+		download_file(url, file)
 
 		with open(file, 'r') as f:
 			downloaded[release] = json.load(f)

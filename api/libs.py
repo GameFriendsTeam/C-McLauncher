@@ -1,5 +1,5 @@
 import os
-from api.tools import download_file, file_sha1
+from api.tools import download_file
 
 def download_libs(q, lib_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 	libraries = {}
@@ -37,14 +37,7 @@ def download_libs(q, lib_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 			lib_sha1 = artifact.get("sha1")
 			need_download = True
 			if os.path.exists(lib_full_path):
-				if lib_sha1:
-					try:
-						if file_sha1(lib_full_path) == lib_sha1:
-							need_download = False
-					except Exception:
-						pass
-				else:
-					need_download = False
+				continue
 
 			if need_download:
 				os.makedirs(lib_clean_path, mode=777, exist_ok=True)

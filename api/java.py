@@ -1,6 +1,6 @@
 import json
 import os
-from api.tools import download_file, file_sha1, lazy_download_file
+from api.tools import download_file
 
 def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> dict[str, str]:
 	javas = {}
@@ -22,7 +22,7 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 
 		os.makedirs(jre_dir, mode=777, exist_ok=True)
 
-		lazy_download_file(url, file_path)
+		download_file(url, file_path)
 
 		with open(file_path, 'r') as f:
 			javas[codename] = json.load(f)
@@ -73,11 +73,7 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 			need_download = True
 
 			if os.path.exists(full_path):
-				if file_sha1_expected:
-					try:
-						if file_sha1(full_path) == file_sha1_expected: need_download = False
-					except Exception: pass
-				else: need_download = False
+				continue
 
 			if need_download:
 				download_file(url, full_path)

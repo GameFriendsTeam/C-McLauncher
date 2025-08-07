@@ -1,5 +1,5 @@
 import os, json
-from api.tools import download_file, file_sha1, unzip_jar
+from api.tools import download_file, unzip_jar
 from urllib.parse import urlparse
 
 def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -> dict[str, list]:
@@ -69,31 +69,6 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 							jar_files.append(file_path)
 							continue
 
-		# Проверяем, есть ли все нужные natives-файлы и их sha1
-		all_ok = True
-		for fpath, fsha1 in expected_natives:
-			if not os.path.exists(fpath):
-				all_ok = False
-				break
-			try:
-				if file_sha1(fpath) != fsha1:
-					all_ok = False
-					break
-			except Exception:
-				all_ok = False
-				break
-
-		# Если всё ок — удаляем jar-файлы и не скачиваем их заново
-		if all_ok:
-			for jar in jar_files:
-				if os.path.exists(jar):
-					try:
-						os.remove(jar)
-					except Exception:
-						pass
-			continue
-
-		# Если не все natives есть или sha1 не совпадает — скачиваем jar
 		for jar in jar_files:
 			if not os.path.exists(jar):
 				os.makedirs(target_dir, mode=777, exist_ok=True)

@@ -1,5 +1,5 @@
 import os
-from api.tools import download_file, file_sha1
+from api.tools import download_file
 
 def download_game(q, ver_dir, releases: dict[str, str]):
 	versions = {}
@@ -20,14 +20,7 @@ def download_game(q, ver_dir, releases: dict[str, str]):
 
 		need_download = True
 		if os.path.exists(file_path):
-			if sha1:
-				try:
-					if file_sha1(file_path) == sha1:
-						need_download = False
-				except Exception:
-					pass
-			else:
-				need_download = False
+			continue
 
 		if need_download:
 			print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%"+" "*10, end="\r", flush=True)
