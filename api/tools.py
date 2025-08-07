@@ -1,7 +1,5 @@
-import subprocess
+import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
-import zipfile, os, requests, time, pathlib
-
 
 def normalize_path(p): return str(p).replace('/', '\\')
 
@@ -120,15 +118,34 @@ def get_args(
 
 	return game_args
 
-def download_file(url: str, filename: pathlib.Path, s: int = 3):
+def download_file(url: str, filename: pathlib.Path, s: int = 3, chunk_size: int = 8192, max_threads: int = 4):
 	try:
 		os.makedirs(os.path.dirname(filename), exist_ok=True)
 		with requests.get(url, stream=True) as response:
 			response.raise_for_status()
 			with open(filename, 'wb') as f:
-				for chunk in response.iter_content(chunk_size=8192):
-					if chunk:
+				# Read and write chunks in parallel using threads
+				def writer(q):
+					while True:
+						chunk = q.pop(0) if q else None
+						if chunk is None:
+							break
 						f.write(chunk)
+				chunks = []
+				threads = []
+				for chunk in response.iter_content(chunk_size=chunk_size):
+					if chunk:
+						chunks.append(chunk)
+						if len(chunks) >= max_threads:
+							t = threading.Thread(target=writer, args=(chunks,))
+							t.start()
+							threads.append(t)
+							chunks = []
+				# Write remaining chunks
+				for chunk in chunks:
+					f.write(chunk)
+				for t in threads:
+					t.join()
 	except requests.exceptions.RequestException as e:
 		time.sleep(s)
 		download_file(url, filename, s)
