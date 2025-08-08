@@ -18,14 +18,12 @@ os_name = os_name if not os.path.exists("/storage") else "android"
 root_dir = pathlib.Path("./")
 path_for_java = pathlib.Path(root_dir if os.name != "android" else pathlib.Path.home())
 
-os.chmod(root_dir, mode=777)
+
 
 game_root_dir = str(pathlib.Path(f"{root_dir}/.minecraft"))
 
-if os.path.exists(game_root_dir):
-	os.chmod(game_root_dir, mode=777)
-else:
-	os.makedirs(game_root_dir, mode=777, exist_ok=True)
+if not os.path.exists(game_root_dir):
+	os.makedirs(game_root_dir, exist_ok=True)
 
 ver_dir = str(pathlib.Path(str(game_root_dir) + "/versions"))
 lib_dir = str(pathlib.Path(str(game_root_dir) + "/libraries"))
@@ -33,11 +31,11 @@ assets_dir = str(pathlib.Path(str(game_root_dir) + "/assets"))
 java_dir = str(pathlib.Path(str(path_for_java) + f"/{"" if os.name != "android" else "."}java"))
 game_dir = str(pathlib.Path(str(game_root_dir) + "/home"))
 
-os.makedirs(ver_dir, mode=777, exist_ok=True)
-os.makedirs(lib_dir, mode=777, exist_ok=True)
-os.makedirs(assets_dir, mode=777, exist_ok=True)
-os.makedirs(java_dir, mode=777, exist_ok=True)
-os.makedirs(game_dir, mode=777, exist_ok=True)
+os.makedirs(ver_dir, exist_ok=True)
+os.makedirs(lib_dir, exist_ok=True)
+os.makedirs(assets_dir, exist_ok=True)
+os.makedirs(java_dir, exist_ok=True)
+os.makedirs(game_dir, exist_ok=True)
 
 ###############
 #  Functions  #
@@ -150,7 +148,7 @@ def main():
 			continue
 
 		if not os.path.exists(f"{ver_dir}/{release}"):
-			os.mkdir(f"{ver_dir}/{release}", mode=777)
+			os.mkdir(f"{ver_dir}/{release}")
 
 		download_file(url, file)
 
@@ -251,7 +249,7 @@ def main():
 		raise NameError(version, "not downloaded or not exists")
 
 	mc_dir = normalize_path(game_dir + "/" + version)
-	os.makedirs(mc_dir, mode=777, exist_ok=True)
+	os.makedirs(mc_dir, exist_ok=True)
 
 	data = downloaded[version]
 

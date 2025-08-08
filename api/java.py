@@ -20,7 +20,7 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 		if os.path.exists(file_path):
 			continue
 
-		os.makedirs(jre_dir, mode=777, exist_ok=True)
+		os.makedirs(jre_dir, exist_ok=True)
 
 		download_file(url, file_path)
 

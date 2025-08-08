@@ -71,7 +71,7 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 
 		for jar in jar_files:
 			if not os.path.exists(jar):
-				os.makedirs(target_dir, mode=777, exist_ok=True)
+				os.makedirs(target_dir, exist_ok=True)
 				# url уже определён выше
 				download_file(url, jar)
 

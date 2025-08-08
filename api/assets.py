@@ -21,7 +21,7 @@ def download_indexes(q, indexes_dir: str, releases: dict[str, dict]) -> dict[str
 		if os.path.exists(indexes_path):
 			continue
 
-		os.makedirs(indexes_dir, mode=777, exist_ok=True)
+		os.makedirs(indexes_dir, exist_ok=True)
 		print(f"Downloading indexes: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
 
 		download_file(asset_url, indexes_path)
@@ -55,7 +55,7 @@ def download_assets(q, assets_dir, downloaded):
 					continue
 				if need_download:
 					obj_url = "https://resources.download.minecraft.net/" + subdir + "/" + hash
-					os.makedirs(assets_dir + "/" + subdir, mode=777, exist_ok=True)
+					os.makedirs(assets_dir + "/" + subdir, exist_ok=True)
 					download_tasks.append((obj_url, file_path, current, count))
 
 	def download_one(args):
