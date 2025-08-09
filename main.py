@@ -112,7 +112,8 @@ def main():
 	global ver_dir, lib_dir, assets_dir, game_dir, os_name
 
 	(arg_username, arg_version, uuid, assets_token,
-	user_type, arg_debug, arg_xmx, arg_xms, woa) = setup_args()
+	user_type, arg_debug, arg_xmx, arg_xms, woa,
+	width, height) = setup_args()
 
 	#####################
 	#  Print base data  #
@@ -313,9 +314,6 @@ def main():
 	uuid = account_uuid if auth_enable else "00000000-0000-0000-0000-000000000000"
 	assets_token = account_at if auth_enable else 0
 	user_type = "msa" if auth_enable else "legacy"
-
-	width = 1280
-	height = 720
 
 	start_mine(
 		uuid, username, assets_token,

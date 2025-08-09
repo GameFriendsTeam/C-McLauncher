@@ -195,6 +195,8 @@ def setup_args():
 	parser.add_argument("-Xmx", type=str, default="", help="Maximum memory allocation.")
 	parser.add_argument("-Xms", type=str, default="", help="Minimum memory allocation.")
 	parser.add_argument("--without_auth", "-woa", action="store_true", help="Disable auth request.")
+	parser.add_argument("--wight", "-w", type=int, default=1280)
+	parser.add_argument("--height", "-h", type=int, default=720)
 
 	args = parser.parse_args()
 
@@ -207,8 +209,11 @@ def setup_args():
 	xmx = args.Xmx
 	xms = args.Xms
 	woa = args.without_auth
+	wight = args.wight
+	height = args.height
 
 	return (
 		username, version, uuid, assets_token,
-		user_type, debug, xmx, xms, woa
+		user_type, debug, xmx, xms, woa,
+		wight, height
 	)
