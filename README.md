@@ -6,15 +6,12 @@ pip3 install -r requirements.txt
 ```
 
 ## Running
-For GNU-Linux:
+For get help information:
 ```bash
-python3 main.py
-<version>
-<nickname>
+python main.py -h
 ```
-For Windows:
+For default running:
 ```bash
 python main.py
-<version>
-<nickname>
 ```
+P.s. for now the entrance to MicroSoft does not work correctly
