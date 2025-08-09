@@ -192,6 +192,8 @@ def setup_args():
 	parser.add_argument("--assets-token", "-at", type=int, default=0, help="The assets token.")
 	parser.add_argument("--user-type", "-ut", type=str, default="legacy", help="The user type.")
 	parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode.")
+	parser.add_argument("-Xmx", type=str, default="", help="Maximum memory allocation.")
+	parser.add_argument("-Xms", type=str, default="", help="Minimum memory allocation.")
 
 	args = parser.parse_args()
 
@@ -201,7 +203,10 @@ def setup_args():
 	assets_token = args.assets_token
 	user_type = args.user_type
 	debug = args.debug
+	xmx = args.Xmx
+	xms = args.Xms
 
 	return (
-		username, version, uuid, assets_token, user_type, debug
+		username, version, uuid, assets_token,
+		user_type, debug, xmx, xms
 	)

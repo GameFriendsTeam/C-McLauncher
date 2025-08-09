@@ -106,7 +106,8 @@ def join_all(th_s):
 def main():
 	global ver_dir, lib_dir, assets_dir, game_dir, os_name
 
-	arg_username, arg_version, uuid, assets_token, user_type, arg_debug = setup_args()
+	(arg_username, arg_version, uuid, assets_token,
+	user_type, arg_debug, arg_xmx, arg_xms) = setup_args()
 
 	#####################
 	#  Print base data  #
@@ -270,6 +271,16 @@ def main():
 	else:
 		enable = bool(input("Enable log output? (y/n): ").strip().lower() == "y")
 		debug = enable
+
+	if arg_xmx != "":
+		xmx = arg_xmx
+	else:
+		xmx = "2048M"
+
+	if arg_xms != "":
+		xms = arg_xms
+	else:
+		xms = "2048M"
 
 	java_run_path = normalize_path(java_dir + "/" + java_codename + f"/bin/java{'' if debug else 'w'}{'.exe' if os.name == 'nt' else ''}")
 
