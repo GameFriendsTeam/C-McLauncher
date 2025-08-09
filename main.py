@@ -5,6 +5,7 @@ from api.assets import download_assets, download_indexes
 from api.natives import download_natives, unzip
 from api.libs import download_libs
 from api.game import download_game
+from api.auth import get_account
 from platform import system
 import multiprocessing as mp
 import subprocess
@@ -42,8 +43,9 @@ os.makedirs(game_dir, exist_ok=True)
 ###############
 
 def start_mine(
+		uuid: str, username: str, assets_token: int, user_type: str,
 		version, version_data, mc_dir,
-		java_path, username, Xms, Xmx, 
+		java_path, Xms, Xmx, 
 		width: int = 925, height: int = 525
 	) -> str:
 	global assets_dir, ver_dir, game_root_dir
@@ -51,7 +53,10 @@ def start_mine(
 	classpath = build_classpath(version, pathlib.Path(mc_dir), version_data, game_root_dir)
 	asset_index = version_data["assetIndex"]["id"]
 
-	game_args = get_args(username, version, mc_dir, assets_dir, asset_index)
+	game_args = get_args(
+		username, version, mc_dir, assets_dir, asset_index,
+		uuid, assets_token, user_type
+	)
 
 	main_class = version_data["mainClass"]
 	natives_dir = normalize_path(os.path.abspath(f"{ver_dir}/{version}/natives/"))
@@ -245,6 +250,17 @@ def main():
 	p4.join()
 	p4.close()
 
+	auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
+	account_username = ""
+	account_uuid = ""
+	account_at = 0
+	
+	if auth_enable:
+		account_data = get_account("a353d02a-994b-40a0-8049-bb5eda32811c")
+		account_username = account_data["username"]
+		account_uuid = account_data["uuid"]
+		account_at = account_data["access_token"]
+
 
 	if arg_version != "":
 		version = arg_version
@@ -254,7 +270,11 @@ def main():
 	if arg_username != "":
 		username = arg_username
 	else:
-		username = input("Enter your username: ")
+
+		if not auth_enable:
+			username = input("Enter your username: ")
+		else:
+			username = account_username
 
 	if not version in downloaded:
 		raise NameError(version, "not downloaded or not exists")
@@ -287,10 +307,18 @@ def main():
 	# Xms - min mem
 	# Xmx - max mem
 
+	uuid = account_uuid if auth_enable else "00000000-0000-0000-0000-000000000000"
+	assets_token = account_at if auth_enable else 0
+	user_type = "msa" if auth_enable else "legacy"
+
+	width = 1280
+	height = 720
+
 	start_mine(
-		version, data, mc_dir, java_run_path,
-		username, Xms=xms, Xmx=xmx,
-		width=1280, height=720
+		uuid, username, assets_token,
+		user_type, version, data,
+		mc_dir, java_run_path, xms, xmx,
+		width, height
 	)
 
 ###########
