@@ -194,6 +194,7 @@ def setup_args():
 	parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode.")
 	parser.add_argument("-Xmx", type=str, default="", help="Maximum memory allocation.")
 	parser.add_argument("-Xms", type=str, default="", help="Minimum memory allocation.")
+	parser.add_argument("--without_auth", "-woa", action="store_true", help="Disable auth request.")
 
 	args = parser.parse_args()
 
@@ -205,8 +206,9 @@ def setup_args():
 	debug = args.debug
 	xmx = args.Xmx
 	xms = args.Xms
+	woa = args.without_auth
 
 	return (
 		username, version, uuid, assets_token,
-		user_type, debug, xmx, xms
+		user_type, debug, xmx, xms, woa
 	)

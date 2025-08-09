@@ -112,7 +112,7 @@ def main():
 	global ver_dir, lib_dir, assets_dir, game_dir, os_name
 
 	(arg_username, arg_version, uuid, assets_token,
-	user_type, arg_debug, arg_xmx, arg_xms) = setup_args()
+	user_type, arg_debug, arg_xmx, arg_xms, woa) = setup_args()
 
 	#####################
 	#  Print base data  #
@@ -250,7 +250,10 @@ def main():
 	p4.join()
 	p4.close()
 
-	auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
+	if not woa:
+		auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
+	else:
+		auth_enable = False
 	account_username = ""
 	account_uuid = ""
 	account_at = 0
