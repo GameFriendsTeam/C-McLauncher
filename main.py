@@ -256,7 +256,7 @@ def main():
 	account_at = 0
 	
 	if auth_enable:
-		account_data = get_account("a353d02a-994b-40a0-8049-bb5eda32811c")
+		account_data = get_account("eec03098-1390-4363-b06b-ac8e519fca70")
 		account_username = account_data["username"]
 		account_uuid = account_data["uuid"]
 		account_at = account_data["access_token"]

@@ -5,14 +5,9 @@ from urllib.parse import urlparse, parse_qs
 import threading
 
 def get_account(client_id):
-    """
-    Получает данные аккаунта Minecraft через Microsoft OAuth
+    # Используем локальный URI без пути /callback
+    redirect_uri = "http://localhost:8080"
     
-    :param client_id: Идентификатор приложения из Azure Portal
-    :return: Словарь с данными аккаунта (username, uuid, access_token)
-    """
-    # 1. Настройки
-    redirect_uri = "http://localhost:8080/callback"
     auth_url = (
         f"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?"
         f"client_id={client_id}&"
@@ -22,7 +17,6 @@ def get_account(client_id):
         "prompt=select_account"
     )
 
-    # 2. Класс для обработки callback
     class CallbackHandler(BaseHTTPRequestHandler):
         code = None
         
@@ -35,29 +29,24 @@ def get_account(client_id):
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
-                self.wfile.write(b"<h1>Auth successful! You can close this window.</h1>")
+                self.wfile.write(b"<h1>Authentication successful! Close this window.</h1>")
             else:
                 self.send_response(400)
                 self.end_headers()
                 self.wfile.write(b"Error: Missing authorization code")
             
-            threading.Thread(target=self.server.shutdown, daemon=True).start()
+            threading.Thread(target=self.server.shutdown).start()
     
-    # 3. Запуск HTTP-сервера для перехвата кода
+    # Запускаем сервер на порту 8080
     server = HTTPServer(("localhost", 8080), CallbackHandler)
-    server_thread = threading.Thread(target=server.serve_forever)
-    server_thread.daemon = True
-    server_thread.start()
-
-    # 4. Открытие браузера для авторизации
+    print("Starting local server...")
     webbrowser.open(auth_url)
     
-    # Ожидание завершения сервера (получения кода)
-    while server_thread.is_alive():
-        server_thread.join(1)
-
+    # Обрабатываем запросы в отдельном потоке
+    server.serve_forever()
+    
     if not CallbackHandler.code:
-        raise Exception("Authorization failed: No code received")
+        raise Exception("No authorization code received")
 
     # 5. Получение Microsoft токенов
     token_data = {
