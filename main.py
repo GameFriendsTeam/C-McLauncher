@@ -46,9 +46,9 @@ def start_mine(
 		java_path, username, Xms, Xmx, 
 		width: int = 925, height: int = 525
 	) -> str:
-	global assets_dir, ver_dir
+	global assets_dir, ver_dir, game_root_dir
 	jvm_args = [f"-Xms{Xms}M", f"-Xmx{Xmx}M", "-Dfile.encoding=UTF-8"]
-	classpath = build_classpath(version, pathlib.Path(mc_dir), version_data)
+	classpath = build_classpath(version, pathlib.Path(mc_dir), version_data, game_root_dir)
 	asset_index = version_data["assetIndex"]["id"]
 
 	game_args = get_args(username, version, mc_dir, assets_dir, asset_index)

@@ -24,7 +24,7 @@ def download_libs(q, lib_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 			# Безопасно получаем путь к файлу
 			if "path" in artifact:
 				lib_path = artifact["path"]
-				file_name = os.path.basename(lib_path)
+				file_name = lib_path
 			else:
 				from urllib.parse import urlparse
 				file_name = os.path.basename(urlparse(lib_url).path)

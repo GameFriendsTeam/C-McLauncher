@@ -34,13 +34,23 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 
 def download_java(dir_of_java: str, javas: dict[str, dict]):
 	import stat, sys
+
+	global_count = len(javas)
+	current_global = 0
+
 	for codename, java_data in javas.items():
 		java_dir = dir_of_java + "/" + codename
 		files = java_data["files"]
 
+		current_global += 1
+		local_count = len(files)
+		current_local = 0
+
 		for name, info in files.items():
 			type = info["type"]
 			full_path = java_dir + "/" + name
+
+			current_local += 1
 
 			if type == "directory":
 				os.makedirs(full_path, exist_ok=True)
@@ -75,8 +85,10 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 
 			if os.path.exists(full_path):
 				continue
+			print(f"Downloading java {str(round(current_local/local_count*100))}% | {str(round(current_global/global_count*100))}%", end="\r")
 			download_file(url, full_path)
-			# После скачивания — если это bin/* и не Windows, делаем chmod 755
+			print(f"Downloaded {full_path}")
+
 			if os.name != "nt":
 				try:
 					# Только для файлов внутри bin/

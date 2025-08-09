@@ -7,10 +7,11 @@ def normalize_path(p):
 
 	return str(pathlib.PurePath(p)).replace('\\', '/')
 
-def build_classpath(mc_ver, mc_dir, version_data):
+def build_classpath(mc_ver, mc_dir, version_data, root_dir):
 	cp_paths = []
 	mc_dir = pathlib.Path(mc_dir)
-	client_jar = "versions/" + mc_ver + f"/{mc_ver}.jar"
+	root_dir = str(root_dir)
+	client_jar = root_dir + "/versions/" + mc_ver + f"/{mc_ver}.jar"
 	cp_paths.append(normalize_path(client_jar))
 
 	lib_versions = {}
@@ -45,7 +46,7 @@ def build_classpath(mc_ver, mc_dir, version_data):
 			lib_path = os.path.basename(urlparse(lib_url).path)
 		if "natives" in lib:
 			continue
-		lib_paths[lib_id].append((version, normalize_path("libraries/" + lib_path)))
+		lib_paths[lib_id].append((version, normalize_path(root_dir + "/libraries/" + lib_path)))
 
 	for lib_id, versions in lib_versions.items():
 		if lib_id not in lib_paths:
@@ -123,31 +124,27 @@ def get_args(
 	return game_args
 
 
-def download_file(url: str, filename: str, s=3, max_retries=5):
+def download_file(url: str, filename: str, s=3):
 	filename = pathlib.Path(filename)
 	dir_path = filename.parent
 	if dir_path and not dir_path.exists():
 		dir_path.mkdir(parents=True, exist_ok=True)
+
+	try:
+		response = requests.get(url)
+		response.raise_for_status()
+		
+		with open(filename, 'wb') as f:
+			f.write(response.content)
+		return
 	
-	for attempt in range(max_retries + 1):
-		try:
-			response = requests.get(url, timeout=(3.05, 27))
-			response.raise_for_status()
-			
-			with open(filename, 'wb') as f:
-				f.write(response.content)
-			return  # Успешная загрузка
-		
-		except requests.exceptions.RequestException as e:
-			if attempt < max_retries:
-				print(f"Attempt {attempt + 1} failed: {e}. Retrying in {s}s...")
-				time.sleep(s)
-			else:
-				raise ConnectionError(f"Failed after {max_retries} attempts") from e
-		
-		except PermissionError as e:
-			print(f"[PermissionError] {e}")
-			raise
+	except requests.exceptions.RequestException as e:
+		print(f"Error downloading {filename}: {e}. Retrying in {s}s...")
+		time.sleep(s)
+
+	except PermissionError as e:
+		print(f"[PermissionError] {e}")
+		raise
 
 def send_get(url: str, s: int = 3) -> object:
 	content = None
