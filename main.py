@@ -106,7 +106,7 @@ def join_all(th_s):
 def main():
 	global ver_dir, lib_dir, assets_dir, game_dir, os_name
 
-	arg_username, arg_version, uuid, assets_token, user_type = setup_args()
+	arg_username, arg_version, uuid, assets_token, user_type, arg_debug = setup_args()
 
 	#####################
 	#  Print base data  #
@@ -265,7 +265,11 @@ def main():
 
 	java_codename = data["javaVersion"]["component"]
 
-	debug = True
+	if arg_debug:
+		debug = True
+	else:
+		enable = bool(input("Enable log output? (y/n): ").strip().lower() == "y")
+		debug = enable
 
 	java_run_path = normalize_path(java_dir + "/" + java_codename + f"/bin/java{'' if debug else 'w'}{'.exe' if os.name == 'nt' else ''}")
 

@@ -191,6 +191,7 @@ def setup_args():
 	parser.add_argument("--uuid", "-i", type=str, default="00000000-0000-0000-0000-000000000000", help="The UUID of the player.")
 	parser.add_argument("--assets-token", "-at", type=int, default=0, help="The assets token.")
 	parser.add_argument("--user-type", "-ut", type=str, default="legacy", help="The user type.")
+	parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode.")
 
 	args = parser.parse_args()
 
@@ -199,7 +200,8 @@ def setup_args():
 	uuid = args.uuid
 	assets_token = args.assets_token
 	user_type = args.user_type
+	debug = args.debug
 
 	return (
-		username, version, uuid, assets_token, user_type
+		username, version, uuid, assets_token, user_type, debug
 	)
