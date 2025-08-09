@@ -186,8 +186,8 @@ def file_sha1(path):
 
 def setup_args():
 	parser = argparse.ArgumentParser(description='C-McLauncher')
-	parser.add_argument("--username", "-u", type=str, default="Player", help="The username of the player.")
-	parser.add_argument("--version", "-v", type=str, default="latest", help="The version of the game.")
+	parser.add_argument("--username", "-u", type=str, default="", help="The username of the player.")
+	parser.add_argument("--version", "-v", type=str, default="", help="The version of the game.")
 	parser.add_argument("--uuid", "-i", type=str, default="00000000-0000-0000-0000-000000000000", help="The UUID of the player.")
 	parser.add_argument("--assets-token", "-at", type=int, default=0, help="The assets token.")
 	parser.add_argument("--user-type", "-ut", type=str, default="legacy", help="The user type.")
@@ -196,7 +196,7 @@ def setup_args():
 	args = parser.parse_args()
 
 	username = args.username
-	version = args.version if not args.version == "latest" else "1.21.8"
+	version = args.version
 	uuid = args.uuid
 	assets_token = args.assets_token
 	user_type = args.user_type

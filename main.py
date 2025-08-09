@@ -245,12 +245,12 @@ def main():
 	p4.close()
 
 
-	if arg_version:
+	if arg_version != "":
 		version = arg_version
 	else:
 		version = input("Select version of minecraft: ")
 
-	if arg_username:
+	if arg_username != "":
 		username = arg_username
 	else:
 		username = input("Enter your username: ")
