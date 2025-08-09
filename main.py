@@ -1,4 +1,4 @@
-from api.tools import build_classpath, download_file, normalize_path, run_process, send_get, get_args
+from api.tools import build_classpath, download_file, normalize_path, run_process, send_get, get_args, setup_args
 import requests, json, os, tqdm, time, pathlib, zipfile, math
 from api.java import download_java_manifests, download_java
 from api.assets import download_assets, download_indexes
@@ -105,6 +105,8 @@ def join_all(th_s):
 
 def main():
 	global ver_dir, lib_dir, assets_dir, game_dir, os_name
+
+	arg_username, arg_version, uuid, assets_token, user_type = setup_args()
 
 	#####################
 	#  Print base data  #
@@ -243,8 +245,16 @@ def main():
 	p4.close()
 
 
-	version = input("Select version of minecraft: ")
-	username = input("Enter your username: ")
+	if arg_version:
+		version = arg_version
+	else:
+		version = input("Select version of minecraft: ")
+
+	if arg_username:
+		username = arg_username
+	else:
+		username = input("Enter your username: ")
+
 	if not version in downloaded:
 		raise NameError(version, "not downloaded or not exists")
 

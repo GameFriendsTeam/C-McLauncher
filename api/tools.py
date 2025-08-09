@@ -1,5 +1,6 @@
 import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
+import argparse
 
 def normalize_path(p):
 	if os.name == "nt":
@@ -59,12 +60,9 @@ def build_classpath(mc_ver, mc_dir, version_data, root_dir):
 					valid_versions.append(v)
 				except Exception:
 					pass
-			if valid_versions:
-				best_version = max(valid_versions, key=lambda v: parse_version(v))
-			else:
-				best_version = versions[0]
-		else:
-			best_version = versions[0]
+			if valid_versions: best_version = max(valid_versions, key=lambda v: parse_version(v))
+			else: best_version = versions[0]
+		else: best_version = versions[0]
 		for v, path in lib_paths[lib_id]:
 			if v == best_version and pathlib.Path(path).exists():
 				cp_paths.append(path)
@@ -127,15 +125,13 @@ def get_args(
 def download_file(url: str, filename: str, s=3):
 	filename = pathlib.Path(filename)
 	dir_path = filename.parent
-	if dir_path and not dir_path.exists():
-		dir_path.mkdir(parents=True, exist_ok=True)
+	if dir_path and not dir_path.exists(): dir_path.mkdir(parents=True, exist_ok=True)
 
 	try:
 		response = requests.get(url)
 		response.raise_for_status()
 		
-		with open(filename, 'wb') as f:
-			f.write(response.content)
+		with open(filename, 'wb') as f: f.write(response.content)
 		return
 	
 	except requests.exceptions.RequestException as e:
@@ -151,9 +147,7 @@ def send_get(url: str, s: int = 3) -> object:
 	try:
 		response = requests.get(url)
 		response.raise_for_status()
-
 		content = response.content
-
 	except requests.exceptions.RequestException as e:
 		time.sleep(s)
 		content = send_get(url)
@@ -186,7 +180,26 @@ def file_sha1(path):
 	with open(path, 'rb') as f:
 		while True:
 			chunk = f.read(8192)
-			if not chunk:
-				break
+			if not chunk: break
 			h.update(chunk)
 	return h.hexdigest()
+
+def setup_args():
+	parser = argparse.ArgumentParser(description='C-McLauncher')
+	parser.add_argument("--username", "-u", type=str, default="Player", help="The username of the player.")
+	parser.add_argument("--version", "-v", type=str, default="latest", help="The version of the game.")
+	parser.add_argument("--uuid", "-i", type=str, default="00000000-0000-0000-0000-000000000000", help="The UUID of the player.")
+	parser.add_argument("--assets-token", "-at", type=int, default=0, help="The assets token.")
+	parser.add_argument("--user-type", "-ut", type=str, default="legacy", help="The user type.")
+
+	args = parser.parse_args()
+
+	username = args.username
+	version = args.version if not args.version == "latest" else "1.21.8"
+	uuid = args.uuid
+	assets_token = args.assets_token
+	user_type = args.user_type
+
+	return (
+		username, version, uuid, assets_token, user_type
+	)
