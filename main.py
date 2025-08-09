@@ -289,7 +289,7 @@ def main():
 
 	start_mine(
 		version, data, mc_dir, java_run_path,
-		username, Xms=4096, Xmx=4096,
+		username, Xms=xms, Xmx=xmx,
 		width=1280, height=720
 	)
 
