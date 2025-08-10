@@ -1,3 +1,5 @@
+from platform import platform
+import resource
 import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
 import argparse
@@ -223,3 +225,24 @@ def setup_args():
 		user_type, debug, xmx, xms, woa,
 		wight, height
 	)
+
+def increase_file_limits():
+    """Увеличивает лимиты файловых дескрипторов для текущего процесса"""
+    if platform.system() != "Linux":
+        return  # Только для Linux
+
+    try:
+        # Текущие лимиты
+        soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+        
+        # Новые значения
+        new_soft = 65536
+        new_hard = max(hard_limit, new_soft)
+        
+        # Установка новых лимитов
+        resource.setrlimit(resource.RLIMIT_NOFILE, (new_soft, new_hard))
+        
+        print(f"Увеличены лимиты файловых дескрипторов: {soft_limit} -> {new_soft}")
+    except Exception as e:
+        print(f"Ошибка при увеличении лимитов: {str(e)}")
+        print("Попробуйте выполнить в терминале: ulimit -n 65536")

@@ -1,4 +1,4 @@
-from api.tools import build_classpath, download_file, normalize_path, run_process, send_get, get_args, setup_args
+from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, run_process, send_get, get_args, setup_args
 import requests, json, os, tqdm, time, pathlib, zipfile, math
 from api.java import download_java_manifests, download_java
 from api.assets import download_assets, download_indexes
@@ -94,6 +94,9 @@ def start_mine(
 				print("  ", f)
 	except Exception as e:
 		print(f"Ошибка при просмотре natives: {e}")
+
+	print("Increasing file limits (only for Linux)...")
+	increase_file_limits()
 
 	print("")
 	subprocess.run(cmd_line)
