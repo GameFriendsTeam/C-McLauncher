@@ -67,4 +67,4 @@ def download_assets(q, assets_dir, downloaded):
 	if download_tasks:
 		with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
 			list(executor.map(download_one, download_tasks))
-	return assets
+	q.put(assets)

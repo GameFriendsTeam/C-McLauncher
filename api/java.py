@@ -1,6 +1,6 @@
 import json
 import os
-from api.tools import download_file
+from api.tools import download_file, run_with_root
 
 def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> dict[str, str]:
 	javas = {}
@@ -57,26 +57,27 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 				os.makedirs(full_path, exist_ok=True)
 				continue
 			elif type == "link":
-				target = info["target"]
+				def create_link(full_path: str, dir_of_java: str, info: dict):
+					import os
+					if os.name == "nt":
+						return
+					target = info["target"]
+					if os.path.exists(full_path): os.remove(full_path)
 
-				if os.path.exists(full_path): os.remove(full_path)
+					parent_dir = os.path.dirname(full_path)
+					if not os.access(parent_dir, os.W_OK):
+						print(f"Error: {parent_dir} - access denied")
+						continue
+					try:
+						os.symlink(target, full_path)
+						if not os.path.exists(target):
+							raise FileNotFoundError(f"Target not found: {dir_of_java + '/' + target}")
+					except PermissionError as e:
+						print(f"Error: {full_path} - permission denied")
+					except FileNotFoundError as e:
+						print(f"Error: {dir_of_java + '/' + target} not exists")
 
-				parent_dir = os.path.dirname(full_path)
-				if not os.access(parent_dir, os.W_OK):
-					print(f"Error: {parent_dir} - access denied")
-					continue
-
-				try:
-					os.symlink(target, full_path)
-
-					if not os.path.exists(target):
-						raise FileNotFoundError(f"Target not found: {dir_of_java + '/' + target}")
-
-				except PermissionError as e:
-					print(f"Error: {full_path} - permission denied")
-
-				except FileNotFoundError as e:
-					print(f"Error: {dir_of_java + '/' + target} not exists")
+				run_with_root(create_link, (full_path, dir_of_java, info))
 
 				continue
 

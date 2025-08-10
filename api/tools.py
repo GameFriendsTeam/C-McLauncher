@@ -1,4 +1,10 @@
+import base64
+import inspect
+import pickle
 from platform import platform
+import sys
+from typing import Any, Callable
+from annotated_types import T
 import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
 import argparse
@@ -242,3 +248,41 @@ def increase_file_limits():
 	except Exception as e:
 		print(f"Error increasing limits: {str(e)}")
 		print("Try running in terminal: ulimit -n 65536")
+
+def check_root() -> tuple[str, bool]:
+	if os.name == "nt":
+		return "Windows system hasn't root access", False
+	su_path = "/system/bin/su"
+	try:
+		if not os.access(su_path, os.X_OK):
+			# For Linux
+			print("On Linux root not available")
+			return "Linux system does not allow execution of 'su'", False
+	except (FileExistsError, FileNotFoundError) as e:
+		print("Your device hasn't granted root access.")
+		return "Root access not available on this device", False
+
+	return "This device has root access", True
+
+def run_with_root(func: Callable[..., T], *args: tuple) -> tuple[str, bool]:
+	if not check_root()[1]:
+		return "Root access is required to run this function.", False
+	
+	try:
+		func_data = {
+			'func_name': func.__name__,
+			'source': inspect.getsource(func),
+			'args': args,
+			'module': __name__
+		}
+		encoded = base64.b64encode(pickle.dumps(func_data)).decode()
+
+		os.execvp("sudo", [
+            "sudo", sys.executable, 
+            "run_root.py", encoded
+        ])
+		
+		return "Function executed successfully with root access.", True
+	
+	except Exception as e:
+		return f"Error occurred: {str(e)}", False

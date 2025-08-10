@@ -45,4 +45,3 @@ def download_libs(q, lib_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 				download_file(lib_url, lib_full_path)
 
 	q.put(libraries)
-	return
