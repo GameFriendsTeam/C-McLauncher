@@ -19,7 +19,6 @@ def build_classpath(mc_ver, mc_dir, version_data, root_dir):
 
 	lib_versions = {}
 	lib_paths = {}
-	# natives_info больше не нужен
 
 	def parse_lib_id(lib):
 		name = lib.get("name", "")
@@ -227,22 +226,19 @@ def setup_args():
 	)
 
 def increase_file_limits():
-    """Увеличивает лимиты файловых дескрипторов для текущего процесса"""
+    """Increases the file descriptor limits for the current process."""
     if platform.system() != "Linux":
-        return  # Только для Linux
+        return  # Only for Linux
 
     try:
-        # Текущие лимиты
         soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
         
-        # Новые значения
         new_soft = 65536
         new_hard = max(hard_limit, new_soft)
         
-        # Установка новых лимитов
         resource.setrlimit(resource.RLIMIT_NOFILE, (new_soft, new_hard))
-        
-        print(f"Увеличены лимиты файловых дескрипторов: {soft_limit} -> {new_soft}")
+
+        print(f"File descriptor limits increased: {soft_limit} -> {new_soft}")
     except Exception as e:
-        print(f"Ошибка при увеличении лимитов: {str(e)}")
-        print("Попробуйте выполнить в терминале: ulimit -n 65536")
+        print(f"Error increasing limits: {str(e)}")
+        print("Try running in terminal: ulimit -n 65536")

@@ -73,27 +73,25 @@ def start_mine(
 	cmd_line.append(f"--height={str(height)}")
 
 	print("")
-	print("Команда запуска JVM:")
+	print("Command line JVM:")
 	print("\n".join(cmd_line))
 	print("")
 
-	# Вывод архитектуры JVM
-	print("Проверка архитектуры JVM:")
+	print("JVM info:")
 	import subprocess
 	try:
 		result = subprocess.run([os.path.abspath(java_path), "-version"], capture_output=True, text=True)
 		print(result.stderr.strip() or result.stdout.strip())
 	except Exception as e:
-		print(f"Ошибка при запуске java -version: {e}")
+		print(f"Error starting java -version: {e}")
 
-	# Вывод списка dll из папки natives
-	print(f"\nСодержимое папки natives ({natives_dir}):")
+	print(f"\nContents of the natives folder ({natives_dir}):")
 	try:
 		for f in os.listdir(natives_dir):
 			if f.lower().endswith('.dll') or f.lower().endswith(".so"):
 				print("  ", f)
 	except Exception as e:
-		print(f"Ошибка при просмотре natives: {e}")
+		print(f"Error listing natives: {e}")
 
 	print("Increasing file limits (only for Linux)...")
 	increase_file_limits()
@@ -129,7 +127,7 @@ def main():
 	print(f"Game root dir: {game_dir}")
 
 	#######################
-	#  Request to mojang  #
+	#  Request to Mojang  #
 	#######################
 
 	content = send_get("https://launchermeta.mojang.com/mc/game/version_manifest.json")
@@ -332,4 +330,4 @@ def main():
 ###########
 
 if __name__ == "__main__":
-	main() # 210 строк
+	main() # 330 lines of code
