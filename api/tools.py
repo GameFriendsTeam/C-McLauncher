@@ -134,7 +134,9 @@ def download_file(url: str, filename: str, s=3):
 		response = requests.get(url)
 		response.raise_for_status()
 		
-		with open(filename, 'wb') as f: f.write(response.content)
+		with open(filename, 'wb') as f:
+			f.write(response.content)
+			f.close()
 		return
 	
 	except requests.exceptions.RequestException as e:
@@ -185,6 +187,7 @@ def file_sha1(path):
 			chunk = f.read(8192)
 			if not chunk: break
 			h.update(chunk)
+		f.close()
 	return h.hexdigest()
 
 def setup_args():

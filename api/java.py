@@ -26,6 +26,7 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 
 		with open(file_path, 'r') as f:
 			javas[codename] = json.load(f)
+			f.close()
 
 
 	download_java(java_dir, javas)

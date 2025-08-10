@@ -154,6 +154,7 @@ def main():
 		if os.path.exists(f"{ver_dir}/{release}/{release}.json"):
 			with open(file, 'r') as f:
 				downloaded[release] = json.load(f)
+				f.close()
 			continue
 
 		if not os.path.exists(f"{ver_dir}/{release}"):
@@ -163,6 +164,7 @@ def main():
 
 		with open(file, 'r') as f:
 			downloaded[release] = json.load(f)
+			f.close()
 
 
 	##########################

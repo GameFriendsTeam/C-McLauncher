@@ -57,6 +57,7 @@ def download_assets(q, assets_dir, downloaded):
 					obj_url = "https://resources.download.minecraft.net/" + subdir + "/" + hash
 					os.makedirs(assets_dir + "/" + subdir, exist_ok=True)
 					download_tasks.append((obj_url, file_path, current, count))
+			f.close()
 
 	def download_one(args):
 		url, file_path, cur, total = args
