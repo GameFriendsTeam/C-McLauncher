@@ -1,5 +1,4 @@
 from platform import platform
-import resource
 import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
 import argparse
@@ -226,19 +225,20 @@ def setup_args():
 	)
 
 def increase_file_limits():
-    """Increases the file descriptor limits for the current process."""
-    if platform.system() != "Linux":
-        return  # Only for Linux
+	"""Increases the file descriptor limits for the current process."""
+	if os.name == "nt":
+		return  # Only for Linux
+	import resource
 
-    try:
-        soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
-        
-        new_soft = 65536
-        new_hard = max(hard_limit, new_soft)
-        
-        resource.setrlimit(resource.RLIMIT_NOFILE, (new_soft, new_hard))
+	try:
+		soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+		
+		new_soft = 65536
+		new_hard = max(hard_limit, new_soft)
+		
+		resource.setrlimit(resource.RLIMIT_NOFILE, (new_soft, new_hard))
 
-        print(f"File descriptor limits increased: {soft_limit} -> {new_soft}")
-    except Exception as e:
-        print(f"Error increasing limits: {str(e)}")
-        print("Try running in terminal: ulimit -n 65536")
+		print(f"File descriptor limits increased: {soft_limit} -> {new_soft}")
+	except Exception as e:
+		print(f"Error increasing limits: {str(e)}")
+		print("Try running in terminal: ulimit -n 65536")
