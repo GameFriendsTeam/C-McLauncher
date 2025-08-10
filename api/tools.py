@@ -135,7 +135,7 @@ def download_file(url: str, filename: str, s=3):
 		return
 	
 	except requests.exceptions.RequestException as e:
-		print(f"Error downloading {filename}: {e}. Retrying in {s}s...")
+		print(f"Error downloading {filename}: {e.strerror}. Retrying in {s}s...")
 		time.sleep(s)
 
 	except PermissionError as e:

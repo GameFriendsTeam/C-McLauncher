@@ -1,4 +1,5 @@
 import os, json
+import time
 from api.tools import download_file, unzip_jar
 from urllib.parse import urlparse
 
@@ -84,8 +85,14 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 	unzip(natives)
 	q.put(natives)
 
-def unzip(jar_files: dict[str, list[str]]):
+def unzip(jar_files: dict[str, list[str]], s: int = 3, try_num: int = 0):
 	for version, jars in jar_files.items():
 		for jar in jars:
-			dir = os.path.dirname(jar)
-			unzip_jar(jar, dir)
+			try:
+				dir = os.path.dirname(jar)
+				unzip_jar(jar, dir)
+			except FileExistsError as e:
+				print(f"File not exists: {e.filename}")
+				print(f"Retrying in {s}")
+				time.sleep(s)
+				unzip({version: [jar]}, try_num=try_num+1)

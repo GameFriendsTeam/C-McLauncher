@@ -59,7 +59,7 @@ def start_mine(
 	)
 
 	main_class = version_data["mainClass"]
-	natives_dir = normalize_path(os.path.abspath(f"{ver_dir}/{version}/natives/"))
+	natives_dir = normalize_path(os.path.abspath(f"{ver_dir}/{version}/natives"))
 
 	cmd_line = [os.path.abspath(java_path)]
 	cmd_line.extend(jvm_args)
@@ -90,7 +90,7 @@ def start_mine(
 	print(f"\nСодержимое папки natives ({natives_dir}):")
 	try:
 		for f in os.listdir(natives_dir):
-			if f.lower().endswith('.dll'):
+			if f.lower().endswith('.dll') or f.lower().endswith(".so"):
 				print("  ", f)
 	except Exception as e:
 		print(f"Ошибка при просмотре natives: {e}")
