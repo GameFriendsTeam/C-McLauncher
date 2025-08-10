@@ -68,7 +68,10 @@ def build_classpath(mc_ver, mc_dir, version_data, root_dir):
 				cp_paths.append(path)
 				break
 
-	return ";".join(cp_paths)
+	windows_cpstr = ";".join(cp_paths)
+	linux_cpstr = ":".join(cp_paths)
+
+	return windows_cpstr if os.name == "nt" else linux_cpstr
 
 def run_process(command_line):
 	startupinfo = subprocess.STARTUPINFO()
