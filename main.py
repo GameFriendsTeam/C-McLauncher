@@ -158,7 +158,7 @@ def main():
 		rpc.update(
 			state="Downloading all game versions",
 			large_image="launcher",
-			small_image="launcher"
+			small_image="python_logo"
 		)
 
 	for release, url in tqdm.tqdm(releases.items(), desc="Installing data"):
@@ -266,7 +266,7 @@ def main():
 			rpc.update(
 				state="Authorization in Microsoft",
 				large_image="launcher",
-				small_image="launcher",
+				small_image="python_logo",
 				start=rpc_time
 			)
 		auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
@@ -290,7 +290,7 @@ def main():
 			rpc.update(
 				state="select version",
 				large_image="launcher",
-				small_image="launcher",
+				small_image="python_logo",
 				start=rpc_time
 			)
 		
@@ -305,7 +305,7 @@ def main():
 			rpc.update(
 				state="Typing username",
 				large_image="launcher",
-				small_image="launcher",
+				small_image="python_logo",
 				details="User typing username",
 				start=rpc_time
 			)
@@ -340,7 +340,7 @@ def main():
 		rpc.update(
 			state="Starting game",
 			large_image="launcher",
-			small_image="launcher",
+			small_image="python_logo",
 			start=rpc_time
 		)
 

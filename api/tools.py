@@ -18,7 +18,7 @@ def run_ds_rpc():
 	rpc.update(
 		state="Run launcher",
 		large_image="launcher",
-		small_image="launcher"
+		small_image="python_logo"
 	)
 
 	return rpc
