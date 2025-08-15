@@ -29,12 +29,13 @@ pip3 install -r requirements.txt
 python3 main.py
 ```
 
-## View help menu:
+# 🚀 Usage
+### View help menu:
 ```bash
 python3 main.py -h
 ```
 
-## Run with using args:
+### Run with using args:
 ```bash
 python3 main.py --without_auth --username YouUsername --version 1.21.8
 ```
