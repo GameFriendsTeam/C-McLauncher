@@ -1,4 +1,4 @@
-from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, run_process, send_get, get_args, setup_args
+from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, run_process, send_get, get_args, setup_args, run_ds_rpc
 import requests, json, os, tqdm, time, pathlib, zipfile, math
 from api.java import download_java_manifests, download_java
 from api.assets import download_assets, download_indexes
@@ -114,7 +114,11 @@ def main():
 
 	(arg_username, arg_version, uuid, assets_token,
 	user_type, arg_debug, arg_xmx, arg_xms, woa,
-	width, height) = setup_args()
+	width, height, rpc_enable) = setup_args()
+
+	rpc = None
+	if rpc_enable:
+		rpc = run_ds_rpc()
 
 	#####################
 	#  Print base data  #
@@ -175,6 +179,13 @@ def main():
 
 	q0 = mp.Queue()
 	p0 = mp.Process(target=download_game, args=(q0, ver_dir, downloaded), name="Downloading version jar")
+
+	if not rpc is None:
+		rpc.set_activity(
+			state="Downloading versions",
+			details="By launcher"
+		)
+
 	p0.start()
 
 	processes.append(p0)
@@ -184,6 +195,13 @@ def main():
 
 	q1 = mp.Queue()
 	p1 = mp.Process(target=download_libs, args=(q1, lib_dir, downloaded), name="Downloading libraries")
+
+	if not rpc is None:
+		rpc.set_activity(
+			state="Downloading libraries",
+			details="By launcher"
+		)
+
 	p1.start()
 
 	processes.append(p1)
@@ -193,6 +211,13 @@ def main():
 
 	q2 = mp.Queue()
 	p2 = mp.Process(target=download_indexes, args=(q2, assets_dir+"/indexes", downloaded), name="Downloading assets")
+
+	if not rpc is None:
+		rpc.set_activity(
+			state="Downloading assets",
+			details="By launcher"
+		)
+
 	p2.start()
 
 	processes.append(p2)
@@ -204,6 +229,13 @@ def main():
 
 	q3 = mp.Queue()
 	p3 = mp.Process(target=download_natives, args=(q3, ver_dir, downloaded, os_name_for_natives), name="downloading natives")
+
+	if not rpc is None:
+		rpc.set_activity(
+			state="Downloading natives",
+			details="By launcher"
+		)
+
 	p3.start()
 
 	processes.append(p3)
@@ -223,6 +255,13 @@ def main():
 
 	q4 = mp.Queue()
 	p4 = mp.Process(target=download_java_manifests, args=(q4, java_dir, data0), name="Downloading java manifests")
+
+	if not rpc is None:
+		rpc.set_activity(
+			state="Downloading javas",
+			details="By launcher"
+		)
+
 	p4.start()
 
 	processes.append(p4)
@@ -255,6 +294,11 @@ def main():
 	p4.close()
 
 	if not woa:
+		if not rpc is None:
+			rpc.set_activity(
+				state="Authorization in Microsoft",
+				details="By launcher"
+			)
 		auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
 	else:
 		auth_enable = False
@@ -272,16 +316,25 @@ def main():
 	if arg_version != "":
 		version = arg_version
 	else:
+		if not rpc is None:
+			rpc.set_activity(
+				state="select version",
+				details="User select version"
+			)
+		
 		version = input("Select version of minecraft: ")
 
 	if arg_username != "":
 		username = arg_username
+	elif account_username != "":
+		username = account_username
 	else:
-
-		if not auth_enable:
-			username = input("Enter your username: ")
-		else:
-			username = account_username
+		if not rpc is None:
+			rpc.set_activity(
+				state="Typing username",
+				details="User typing username"
+			)
+		username = input("Enter your username: ")
 
 	if not version in downloaded:
 		raise NameError(version, "not downloaded or not exists")
@@ -293,21 +346,11 @@ def main():
 
 	java_codename = data["javaVersion"]["component"]
 
-	if arg_debug:
-		debug = True
-	else:
-		enable = bool(input("Enable log output? (y/n): ").strip().lower() == "y")
-		debug = enable
 
-	if arg_xmx != "":
-		xmx = arg_xmx
-	else:
-		xmx = "2048M"
+	debug = bool(input("Enable log output? (y/n): ").strip().lower() == "y") if arg_debug == None else arg_debug
 
-	if arg_xms != "":
-		xms = arg_xms
-	else:
-		xms = "2048M"
+	xmx = str(int(input("Enter maximum RAM (in Megabytes): ")))+"M" if arg_xmx == "" else arg_xmx
+	xms = str(int(input("Enter minimum RAM (in Megabytes): ")))+"M" if arg_xms == "" else arg_xms
 
 	java_run_path = normalize_path(java_dir + "/" + java_codename + f"/bin/java{'' if debug else 'w'}{'.exe' if os.name == 'nt' else ''}")
 
@@ -317,6 +360,9 @@ def main():
 	uuid = account_uuid if auth_enable else "00000000-0000-0000-0000-000000000000"
 	assets_token = account_at if auth_enable else 0
 	user_type = "msa" if auth_enable else "legacy"
+
+	if not rpc is None:
+		rpc.set_activity(state="Starting game")
 
 	start_mine(
 		uuid, username, assets_token,

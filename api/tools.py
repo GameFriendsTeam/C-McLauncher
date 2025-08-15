@@ -9,6 +9,17 @@ import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
 import argparse
 
+def run_ds_rpc():
+	import discordrpc
+	rpc = discordrpc.RPC(add_id=1405904528062283977)
+	rpc.set_activity(
+		state="Run launcher",
+		details="Just launched the program"
+	)
+
+	rpc.run()
+	return rpc
+
 def normalize_path(p):
 	if os.name == "nt":
 		return str(pathlib.PurePath(p)).replace('/', '\\')
@@ -123,8 +134,8 @@ def get_args(
 	game_args.append(user_type)
 	game_args.append("-Dminecraft.launcher.brand=java-minecraft-launcher")
 	game_args.append("-Dminecraft.launcher.version=1.6.84-j")
-	#game_args.append("--userProperties")
-	#game_args.append("{}")
+	game_args.append("--userProperties")
+	game_args.append("{}")
 	game_args.append("--versionType")
 	game_args.append("release")
 
@@ -185,17 +196,6 @@ def get_filename_from_url(url, default = "null"):
 		return filename
 	except: return default
 
-def file_sha1(path):
-	import hashlib
-	h = hashlib.sha1()
-	with open(path, 'rb') as f:
-		while True:
-			chunk = f.read(8192)
-			if not chunk: break
-			h.update(chunk)
-		f.close()
-	return h.hexdigest()
-
 def setup_args():
 	parser = argparse.ArgumentParser(description='C-McLauncher')
 	parser.add_argument("--username", "-u", type=str, default="", help="The username of the player.")
@@ -209,6 +209,7 @@ def setup_args():
 	parser.add_argument("--without_auth", "-woa", action="store_true", help="Disable auth request.")
 	parser.add_argument("--wight", "-wi", type=int, default=1280)
 	parser.add_argument("--height", "-he", type=int, default=720)
+	parser.add_argument("--enable_rpc", "-rpc", action="store_true", help="Enable Discord RPC (discordrpc installed by pip requirement)")
 
 	args = parser.parse_args()
 
@@ -223,11 +224,12 @@ def setup_args():
 	woa = args.without_auth
 	wight = args.wight
 	height = args.height
+	rpc = args.enable_rpc
 
 	return (
 		username, version, uuid, assets_token,
 		user_type, debug, xmx, xms, woa,
-		wight, height
+		wight, height, rpc
 	)
 
 def increase_file_limits():

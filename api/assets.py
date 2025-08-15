@@ -3,7 +3,7 @@ import os
 from api.tools import get_filename_from_url, download_file, normalize_path
 import multiprocessing as mp
 
-def download_indexes(q, indexes_dir: str, releases: dict[str, dict]) -> dict[str, str]:
+def download_indexes(q: mp.Queue, indexes_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 	indexes = {}
 
 	count = len(releases)
@@ -31,11 +31,10 @@ def download_indexes(q, indexes_dir: str, releases: dict[str, dict]) -> dict[str
 
 	q.put((indexes, assets))
 
-def download_assets(q, assets_dir, downloaded):
+def download_assets(q: mp.Queue, assets_dir, downloaded):
 	import concurrent.futures
 	assets_dir = normalize_path(assets_dir)
 	assets = {}
-	download_tasks = []
 	count = len(downloaded)
 	current = 0
 
@@ -47,24 +46,20 @@ def download_assets(q, assets_dir, downloaded):
 			for obj_name, entry in objects.items():
 				hash = entry["hash"]
 				subdir = hash[0:2]
+
 				file_path = assets_dir + "/" + subdir + "/" + hash
 				assets[obj_name] = file_path
-				obj_sha1 = hash
+
 				need_download = True
 				if os.path.exists(file_path):
 					continue
+
 				if need_download:
 					obj_url = "https://resources.download.minecraft.net/" + subdir + "/" + hash
 					os.makedirs(assets_dir + "/" + subdir, exist_ok=True)
-					download_tasks.append((obj_url, file_path, current, count))
+					print(f"Downloading assets: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
+					download_file(obj_url, file_path)
+
 			f.close()
 
-	def download_one(args):
-		url, file_path, cur, total = args
-		print(f"Downloading assets: {str(round(cur/total*100))}%"+" "*10, end="\r", flush=True)
-		download_file(url, file_path)
-
-	if download_tasks:
-		with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-			list(executor.map(download_one, download_tasks))
 	q.put(assets)
