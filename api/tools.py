@@ -8,16 +8,17 @@ from annotated_types import T
 import subprocess, threading, zipfile, os, requests, time, pathlib
 from urllib.parse import urlparse
 import argparse
+import threading
 
 def run_ds_rpc():
-	import discordrpc
-	rpc = discordrpc.RPC(add_id=1405904528062283977)
-	rpc.set_activity(
-		state="Run launcher",
-		details="Just launched the program"
+	import pypresence
+	rpc = pypresence.Presence(1405904528062283977)
+	rpc.connect()
+
+	rpc.update(
+		state="Run launcher"
 	)
 
-	rpc.run()
 	return rpc
 
 def normalize_path(p):

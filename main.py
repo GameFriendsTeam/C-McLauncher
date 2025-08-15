@@ -9,6 +9,7 @@ from api.auth import get_account
 from platform import system
 import multiprocessing as mp
 import subprocess
+import time
 
 os_name = system().lower()
 os_name = os_name.replace("darwin", "mac-os")
@@ -119,6 +120,7 @@ def main():
 	rpc = None
 	if rpc_enable:
 		rpc = run_ds_rpc()
+	rpc_time = time.time()
 
 	#####################
 	#  Print base data  #
@@ -152,6 +154,10 @@ def main():
 	#  Initialize versions  #
 	#########################
 
+	if not rpc is None:
+		rpc.update(
+			state="Downloading all game versions"
+		)
 
 	for release, url in tqdm.tqdm(releases.items(), desc="Installing data"):
 		file = f"{ver_dir}/{release}/{release}.json"
@@ -175,20 +181,11 @@ def main():
 	##########################
 	#  Downloading versions  #
 	##########################
-	processes = []
 
 	q0 = mp.Queue()
 	p0 = mp.Process(target=download_game, args=(q0, ver_dir, downloaded), name="Downloading version jar")
-
-	if not rpc is None:
-		rpc.set_activity(
-			state="Downloading versions",
-			details="By launcher"
-		)
-
 	p0.start()
 
-	processes.append(p0)
 	###########################
 	#  Downloading libraries  #
 	###########################
@@ -196,31 +193,17 @@ def main():
 	q1 = mp.Queue()
 	p1 = mp.Process(target=download_libs, args=(q1, lib_dir, downloaded), name="Downloading libraries")
 
-	if not rpc is None:
-		rpc.set_activity(
-			state="Downloading libraries",
-			details="By launcher"
-		)
 
 	p1.start()
 
-	processes.append(p1)
 	#########################
 	#  Downloading assets  #
 	#########################
 
 	q2 = mp.Queue()
 	p2 = mp.Process(target=download_indexes, args=(q2, assets_dir+"/indexes", downloaded), name="Downloading assets")
-
-	if not rpc is None:
-		rpc.set_activity(
-			state="Downloading assets",
-			details="By launcher"
-		)
-
 	p2.start()
 
-	processes.append(p2)
 	#########################
 	#  Downloading natives  #
 	#########################
@@ -229,42 +212,25 @@ def main():
 
 	q3 = mp.Queue()
 	p3 = mp.Process(target=download_natives, args=(q3, ver_dir, downloaded, os_name_for_natives), name="downloading natives")
-
-	if not rpc is None:
-		rpc.set_activity(
-			state="Downloading natives",
-			details="By launcher"
-		)
-
 	p3.start()
 
-	processes.append(p3)
 	###################
 	#  Download java  #
 	###################
-	content = send_get("https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json")
 
+	content = send_get("https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json")
 	os_ls = {
 		"windows": "windows-x64",
 		"linux": "linux",
 		"android": "linux",
 		"mac-os": "mac-os-arm64"
 	}
-
 	data0 = json.loads(bytes(content).decode())[os_ls[os_name.lower()]]
 
 	q4 = mp.Queue()
-	p4 = mp.Process(target=download_java_manifests, args=(q4, java_dir, data0), name="Downloading java manifests")
-
-	if not rpc is None:
-		rpc.set_activity(
-			state="Downloading javas",
-			details="By launcher"
-		)
-
+	p4 = mp.Process(target=download_java_manifests, args=(q4, java_dir, data0), name="Downloading java")
 	p4.start()
 
-	processes.append(p4)
 	#####################
 	#  Start minecraft  #
 	#####################
@@ -295,9 +261,9 @@ def main():
 
 	if not woa:
 		if not rpc is None:
-			rpc.set_activity(
+			rpc.update(
 				state="Authorization in Microsoft",
-				details="By launcher"
+				start=rpc_time
 			)
 		auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
 	else:
@@ -317,9 +283,9 @@ def main():
 		version = arg_version
 	else:
 		if not rpc is None:
-			rpc.set_activity(
+			rpc.update(
 				state="select version",
-				details="User select version"
+				start=rpc_time
 			)
 		
 		version = input("Select version of minecraft: ")
@@ -330,9 +296,10 @@ def main():
 		username = account_username
 	else:
 		if not rpc is None:
-			rpc.set_activity(
+			rpc.update(
 				state="Typing username",
-				details="User typing username"
+				details="User typing username",
+				start=rpc_time
 			)
 		username = input("Enter your username: ")
 
@@ -362,7 +329,7 @@ def main():
 	user_type = "msa" if auth_enable else "legacy"
 
 	if not rpc is None:
-		rpc.set_activity(state="Starting game")
+		rpc.update(state="Starting game", start=rpc_time)
 
 	start_mine(
 		uuid, username, assets_token,
@@ -370,6 +337,7 @@ def main():
 		mc_dir, java_run_path, xms, xmx,
 		width, height
 	)
+	rpc.close()
 
 ###########
 #  START  #

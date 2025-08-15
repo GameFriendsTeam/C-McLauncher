@@ -40,7 +40,7 @@ def get_account(client_id):
                 self.wfile.write(b"<h1>Auth successful! You can close this window.</h1>")
                 auth_state.event.set()
             else:
-                self.send_response(400)
+                self.send_response(500)
                 self.end_headers()
                 self.wfile.write(b"Error: Missing authorization code")
     
