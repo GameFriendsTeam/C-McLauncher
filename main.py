@@ -1,8 +1,8 @@
 from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, run_process, send_get, get_args, setup_args, run_ds_rpc
 import requests, json, os, tqdm, time, pathlib, zipfile, math
-from api.java import download_java_manifests, download_java
-from api.assets import download_assets, download_indexes
-from api.natives import download_natives, unzip
+from api.java import download_java_manifests
+from api.natives import download_natives
+from api.assets import download_indexes
 from api.libs import download_libs
 from api.game import download_game
 from api.auth import get_account
@@ -156,7 +156,9 @@ def main():
 
 	if not rpc is None:
 		rpc.update(
-			state="Downloading all game versions"
+			state="Downloading all game versions",
+			large_image="launcher",
+			small_image="launcher"
 		)
 
 	for release, url in tqdm.tqdm(releases.items(), desc="Installing data"):
@@ -263,6 +265,8 @@ def main():
 		if not rpc is None:
 			rpc.update(
 				state="Authorization in Microsoft",
+				large_image="launcher",
+				small_image="launcher",
 				start=rpc_time
 			)
 		auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
@@ -285,6 +289,8 @@ def main():
 		if not rpc is None:
 			rpc.update(
 				state="select version",
+				large_image="launcher",
+				small_image="launcher",
 				start=rpc_time
 			)
 		
@@ -298,6 +304,8 @@ def main():
 		if not rpc is None:
 			rpc.update(
 				state="Typing username",
+				large_image="launcher",
+				small_image="launcher",
 				details="User typing username",
 				start=rpc_time
 			)
@@ -329,7 +337,12 @@ def main():
 	user_type = "msa" if auth_enable else "legacy"
 
 	if not rpc is None:
-		rpc.update(state="Starting game", start=rpc_time)
+		rpc.update(
+			state="Starting game",
+			large_image="launcher",
+			small_image="launcher",
+			start=rpc_time
+		)
 
 	start_mine(
 		uuid, username, assets_token,

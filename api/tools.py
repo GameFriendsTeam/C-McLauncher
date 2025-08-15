@@ -16,7 +16,9 @@ def run_ds_rpc():
 	rpc.connect()
 
 	rpc.update(
-		state="Run launcher"
+		state="Run launcher",
+		large_image="launcher",
+		small_image="launcher"
 	)
 
 	return rpc
