@@ -1,3 +1,4 @@
+import asyncio
 import os
 from api.tools import download_file
 
@@ -19,11 +20,10 @@ def download_game(q, ver_dir, releases: dict[str, str]):
 		versions[version] = file_path
 
 		need_download = True
-		if os.path.exists(file_path):
-			continue
+		if os.path.exists(file_path): continue
 
 		if need_download:
 			print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%"+" "*10, end="\r", flush=True)
-			download_file(url, file_path)
+			asyncio.run(download_file(url, file_path))
 
 	q.put(versions)

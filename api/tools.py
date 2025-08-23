@@ -1,14 +1,9 @@
-import base64
-import inspect
-import pickle
-from platform import platform
-import sys
-from typing import Any, Callable
-from annotated_types import T
-import subprocess, threading, zipfile, os, requests, time, pathlib
+import base64, inspect, pickle, subprocess, zipfile
+import os, httpx, time, pathlib, sys, argparse, traceback
 from urllib.parse import urlparse
-import argparse
-import threading
+from annotated_types import T
+from typing import Callable
+import aiofiles
 
 def run_ds_rpc():
 	import pypresence
@@ -23,11 +18,12 @@ def run_ds_rpc():
 
 	return rpc
 
-def normalize_path(p):
-	if os.name == "nt":
-		return str(pathlib.PurePath(p)).replace('/', '\\')
-
-	return str(pathlib.PurePath(p)).replace('\\', '/')
+def normalize_path(p: str) -> str:
+    normalized_path = os.path.normpath(p)
+    
+    if os.name == "nt":
+        return normalized_path.replace('/', '\\')
+    return normalized_path.replace('\\', '/')
 
 def build_classpath(mc_ver, mc_dir, version_data, root_dir):
 	cp_paths = []
@@ -51,35 +47,29 @@ def build_classpath(mc_ver, mc_dir, version_data, root_dir):
 
 	for lib in version_data["libraries"]:
 		artifact = lib.get("downloads", {}).get("artifact")
-		if not artifact:
-			continue
+		if not artifact: continue
 		lib_id, version = parse_lib_id(lib)
-		if not lib_id or not version:
-			continue
+		if not lib_id or not version: continue
 		if lib_id not in lib_versions:
 			lib_versions[lib_id] = []
 			lib_paths[lib_id] = []
 		lib_versions[lib_id].append(version)
-		if "path" in artifact:
-			lib_path = artifact["path"]
+		if "path" in artifact: lib_path = artifact["path"]
 		else:
 			lib_url = artifact["url"]
 			lib_path = os.path.basename(urlparse(lib_url).path)
-		if "natives" in lib:
-			continue
+		if "natives" in lib: continue
 		lib_paths[lib_id].append((version, normalize_path(root_dir + "/libraries/" + lib_path)))
 
 	for lib_id, versions in lib_versions.items():
-		if lib_id not in lib_paths:
-			continue
+		if lib_id not in lib_paths: continue
 		if len(versions) > 1:
 			valid_versions = []
 			for v in versions:
 				try:
 					_ = parse_version(v)
 					valid_versions.append(v)
-				except Exception:
-					pass
+				except Exception: pass
 			if valid_versions: best_version = max(valid_versions, key=lambda v: parse_version(v))
 			else: best_version = versions[0]
 		else: best_version = versions[0]
@@ -145,37 +135,51 @@ def get_args(
 	return game_args
 
 
-def download_file(url: str, filename: str, s=3):
+async def download_file(url: str, filename: str, s: int = 3, attempts: int = 3):
+
 	filename = pathlib.Path(filename)
 	dir_path = filename.parent
+
 	if dir_path and not dir_path.exists(): dir_path.mkdir(parents=True, exist_ok=True)
 
 	try:
-		response = requests.get(url)
-		response.raise_for_status()
-		
-		with open(filename, 'wb') as f:
-			f.write(response.content)
-			f.close()
+		async with httpx.AsyncClient(http2=True) as ac:
+			response = await ac.get(url)
+
+			response.raise_for_status()
+			
+			async with aiofiles.open(filename, 'wb') as f:
+				await f.write(response.content)
+				await f.close()
 		return
 	
-	except requests.exceptions.RequestException as e:
-		print(f"Error downloading {filename}: {e.strerror}. Retrying in {s}s...")
-		time.sleep(s)
+	except httpx.HTTPError as e:
+		print(f"Error downloading {filename}: {e}. Attempts left: {attempts}")
+		if attempts > 0:
+			print(f"Retrying in {s}s...")
+			time.sleep(s)
+			await download_file(url, filename, s, attempts-1)
 
 	except PermissionError as e:
 		print(f"[PermissionError] {e}")
-		raise
+		traceback.print_stack()
+		raise e
 
-def send_get(url: str, s: int = 3) -> object:
+def send_get(url: str, s: int = 3, attempts: int = 3) -> str:
+
 	content = None
 	try:
-		response = requests.get(url)
-		response.raise_for_status()
-		content = response.content
-	except requests.exceptions.RequestException as e:
-		time.sleep(s)
-		content = send_get(url)
+		with httpx.Client(http2=True) as c:
+			response = c.get(url)
+			response.raise_for_status()
+			content = response.text
+
+	except httpx.HTTPError as e:
+		print(f"Error getting data from {url}: {e}. Attempts left: {attempts}")
+		if attempts > 0:
+			print(f"Retrying in {s}s...")
+			time.sleep(s)
+			content = send_get(url, s, attempts-1)
 
 	return content
 
@@ -189,7 +193,7 @@ def unzip_jar(target_path, out_path):
 			else: z_object.extractall()
 
 	except zipfile.BadZipFile: raise IOError(f"Error: '{target_path}' is not a valid ZIP (or JAR) file.")
-	except FileNotFoundError: raise IOError(f"Error: JAR file not found at '{target_path}'.")
+	except FileNotFoundError: raise FileNotFoundError(f"Error: JAR file not found at '{target_path}'.")
 	except Exception as e: raise Exception(f"An unexpected error occurred: {e}")
 
 def get_filename_from_url(url, default = "null"):

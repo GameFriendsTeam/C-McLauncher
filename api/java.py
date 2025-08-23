@@ -1,6 +1,7 @@
+import asyncio
 import json
 import os
-from api.tools import download_file, run_with_root
+from api.tools import download_file, normalize_path, run_with_root
 
 def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> dict[str, str]:
 	javas = {}
@@ -14,15 +15,15 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 		url = data["manifest"]["url"]
 		asset_sha1 = data["manifest"]["sha1"]
 
-		jre_dir = java_dir + "/" + codename
-		file_path = jre_dir + "/" + "/manifest.json"
+		jre_dir = normalize_path(java_dir + "/" + codename)
+		file_path = normalize_path(jre_dir + "/" + "/manifest.json")
 
 		if os.path.exists(file_path):
 			continue
 
 		os.makedirs(jre_dir, exist_ok=True)
 
-		download_file(url, file_path)
+		asyncio.run(download_file(url, file_path))
 
 		with open(file_path, 'r') as f:
 			javas[codename] = json.load(f)
@@ -40,7 +41,7 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 	current_global = 0
 
 	for codename, java_data in javas.items():
-		java_dir = dir_of_java + "/" + codename
+		java_dir = normalize_path(dir_of_java + "/" + codename)
 		files = java_data["files"]
 
 		current_global += 1
@@ -49,7 +50,7 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 
 		for name, info in files.items():
 			type = info["type"]
-			full_path = java_dir + "/" + name
+			full_path = normalize_path(java_dir + "/" + name)
 
 			current_local += 1
 
@@ -88,7 +89,7 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 			if os.path.exists(full_path):
 				continue
 			print(f"Downloading java {str(round(current_local/local_count*100))}% | {str(round(current_global/global_count*100))}%", end="\r")
-			download_file(url, full_path)
+			asyncio.run(download_file(url, full_path))
 			print(f"Downloaded {full_path}")
 
 			if os.name != "nt":

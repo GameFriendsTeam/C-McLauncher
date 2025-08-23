@@ -1,22 +1,50 @@
-import requests
-import webbrowser
+import json, requests, webbrowser, os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import threading
-import time
+
+html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization Successful</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        p {
+            color: #555;
+        }
+    </style>
+    <script>
+        setTimeout(() => {
+            window.close();
+        }, 5000);
+    </script>
+</head>
+<body>
+    <h1>Auth successful!</h1>
+    <p>This page will close in 5 seconds.</p>
+    <p>You can also <a onclick="window.close();">close it manually</a>.</p>
+</body>
+</html>
+"""
 
 class AuthState:
-    """Класс для хранения состояния авторизации между потоками"""
     def __init__(self):
         self.code = None
         self.event = threading.Event()
         self.server = None
 
 def get_account(client_id):
-    """
-    Gets Minecraft account data via Microsoft OAuth
-    """
-
     redirect_uri = "http://localhost:8080"
     auth_url = (
         f"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?"
@@ -26,6 +54,10 @@ def get_account(client_id):
         "scope=XboxLive.signin%20offline_access&"
         "prompt=select_account"
     )
+
+    data = get_data()
+    if data is not None:
+        return data
 
     class CallbackHandler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -37,7 +69,7 @@ def get_account(client_id):
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
-                self.wfile.write(b"<h1>Auth successful! You can close this window.</h1>")
+                self.wfile.write(html.encode())
                 auth_state.event.set()
             else:
                 self.send_response(500)
@@ -136,21 +168,34 @@ def get_account(client_id):
         error = profile_response.get("errorMessage", "Failed to get profile")
         raise Exception(f"Profile error: {error}")
 
-    return {
+    data = {
         "username": profile_response["name"],
         "uuid": profile_response["id"],
         "access_token": mc_response['access_token']
     }
+    save_data(data)
 
-if __name__ == "__main__":
-    CLIENT_ID = "eec03098-1390-4363-b06b-ac8e519fca70"
-    
-    try:
-        print("Starting authorization process...")
-        account = get_account(CLIENT_ID)
-        print("\nAuthorization successful!")
-        print(f"Username: {account['username']}")
-        print(f"UUID: {account['uuid']}")
-        print(f"Access token: {account['access_token'][:15]}...")
-    except Exception as e:
-        print(f"\nAuthorization error: {str(e)}")
+    return data
+
+file_path = "./.txt"
+
+def get_data() -> dict:
+    global file_path
+    json_data = ""
+
+    if not os.path.exists(file_path): return None
+
+    with open(file_path, "r") as f:
+        json_data = f.read()
+        f.close()
+
+    if json_data == "": return None
+
+    return json.loads(json_data)
+
+def save_data(data: dict):
+    global file_path
+
+    with open(file_path, "wb") as f:
+        f.write(json.dumps(data).encode("utf-8"))
+        f.close()

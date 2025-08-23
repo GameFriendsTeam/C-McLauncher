@@ -1,5 +1,7 @@
-requests
+httpx
+httpx[http2]
 tqdm
 packaging
 resource
 pypresence
+aiofiles

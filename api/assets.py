@@ -3,13 +3,14 @@ import os
 from pathlib import Path
 from api.tools import get_filename_from_url, download_file, normalize_path
 import multiprocessing as mp
+import asyncio
 
 def download_indexes(q: mp.Queue, indexes_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 	indexes = {}
 
 	count = len(releases)
 	current = 0
-	
+
 	if not os.path.exists(indexes_dir): os.makedirs(indexes_dir, exist_ok=True)
 
 	for version, data in releases.items():
@@ -25,9 +26,10 @@ def download_indexes(q: mp.Queue, indexes_dir: str, releases: dict[str, dict]) -
 		if os.path.exists(index_path):
 			continue
 
-		print(f"Downloading indexes: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
+		print(f"Download assets stage 1/2: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
 
-		download_file(asset_url, index_path)
+		asyncio.run(download_file(asset_url, index_path))
+		print(f"Downloaded {index_path}")
 
 	assets = download_assets(str(Path(indexes_dir+"/../objects")), indexes)
 
@@ -48,7 +50,7 @@ def download_assets(assets_dir, downloaded):
 			for obj_name, entry in objects.items():
 				hash = entry["hash"]
 				subdir = hash[0:2]
-				file_path = assets_dir + "/" + subdir + "/" + hash
+				file_path = normalize_path(assets_dir + "/" + subdir + "/" + hash)
 
 				assets[obj_name] = file_path
 				if os.path.exists(file_path):
@@ -56,8 +58,9 @@ def download_assets(assets_dir, downloaded):
 
 				obj_url = "https://resources.download.minecraft.net/" + subdir + "/" + hash
 				os.makedirs(assets_dir + "/" + subdir, exist_ok=True)
-				print(f"Downloading assets: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
-				download_file(obj_url, file_path)
+				print(f"Download assets stage 2/2: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
+				asyncio.run(download_file(obj_url, file_path))
+				print(f"Downloaded {obj_name}")
 
 			f.close()
 

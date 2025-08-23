@@ -10,6 +10,7 @@ from platform import system
 import multiprocessing as mp
 import subprocess
 import time
+import asyncio
 
 os_name = system().lower()
 os_name = os_name.replace("darwin", "mac-os")
@@ -146,7 +147,7 @@ def main():
 	#  Parsing web source  #
 	########################
 
-	for ver in tqdm.tqdm(data, desc="Parsing"):
+	for ver in data:
 		if ver["type"] != "release": continue
 		releases[ver["id"]] = ver["url"]
 
@@ -161,7 +162,7 @@ def main():
 			small_image="python_logo"
 		)
 
-	for release, url in tqdm.tqdm(releases.items(), desc="Installing data"):
+	for release, url in releases.items():
 		file = f"{ver_dir}/{release}/{release}.json"
 
 		if os.path.exists(f"{ver_dir}/{release}/{release}.json"):
@@ -173,7 +174,9 @@ def main():
 		if not os.path.exists(f"{ver_dir}/{release}"):
 			os.mkdir(f"{ver_dir}/{release}")
 
-		download_file(url, file)
+		asyncio.run(download_file(url, file))
+
+		if not os.path.exists(file): continue
 
 		with open(file, 'r') as f:
 			downloaded[release] = json.load(f)
@@ -227,7 +230,7 @@ def main():
 		"android": "linux",
 		"mac-os": "mac-os-arm64"
 	}
-	data0 = json.loads(bytes(content).decode())[os_ls[os_name.lower()]]
+	data0 = json.loads(content)[os_ls[os_name.lower()]]
 
 	q4 = mp.Queue()
 	p4 = mp.Process(target=download_java_manifests, args=(q4, java_dir, data0), name="Downloading java")
@@ -269,7 +272,7 @@ def main():
 				small_image="python_logo",
 				start=rpc_time
 			)
-		auth_enable = bool(input("You want auth? (y/n): ").strip().lower() == "y")
+		auth_enable = True
 	else:
 		auth_enable = False
 	account_username = ""
@@ -350,11 +353,11 @@ def main():
 		mc_dir, java_run_path, xms, xmx,
 		width, height
 	)
-	rpc.close()
+	if not rpc is None: rpc.close()
 
 ###########
 #  START  #
 ###########
 
 if __name__ == "__main__":
-	main() # 330 lines of code
+	main() # 360 lines of code

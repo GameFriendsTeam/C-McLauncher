@@ -1,6 +1,7 @@
+import asyncio
 import os, json
 import time
-from api.tools import download_file, unzip_jar
+from api.tools import download_file, normalize_path, unzip_jar
 from urllib.parse import urlparse
 
 def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -> dict[str, list]:
@@ -11,7 +12,7 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 
 	for version, data in releases.items():
 		current_global += 1
-		target_dir = f"{ver_dir}/{version}/natives"
+		target_dir = normalize_path(f"{ver_dir}/{version}/natives")
 		natives[version] = []
 		libs = data["libraries"]
 		local_count = len(libs)
@@ -49,12 +50,7 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 				if os.path.exists(file_path):
 					continue
 
-				print(f"[DEBUG] Classifier Name: {classifier_name}")
-				print(f"[DEBUG] URL: {url}")
-				print(f"[DEBUG] File Name: {file_name}")
-				print(f"[DEBUG] File Path: {file_path}")
-
-				download_file(url, str(file_path))
+				asyncio.run(download_file(url, str(file_path)))
 				natives[version].append(file_path)
 
 			# --- Новый формат Mojang: по ключу rules ---
@@ -75,24 +71,20 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 							if os.path.exists(file_path):
 								continue
 
-							print(f"[DEBUG] Artifact URL: {url}")
-							print(f"[DEBUG] Artifact File Name: {file_name}")
-							print(f"[DEBUG] Artifact File Path: {file_path}")
-
-						download_file(url, str(file_path))
+						asyncio.run(download_file(url, str(file_path)))
 						natives[version].append(file_path)
 
 	unzip(natives)
 	q.put(natives)
 
-def unzip(jar_files: dict[str, list[str]], s: int = 3, try_num: int = 0):
+def unzip(jar_files: dict[str, list[str]], s: int = 3, try_num: int = 3):
 	for version, jars in jar_files.items():
 		for jar in jars:
 			try:
 				dir = os.path.dirname(jar)
 				unzip_jar(jar, dir)
-			except FileExistsError as e:
-				print(f"File not exists: {e.filename}")
+			except FileNotFoundError as e:
+				print(f"File not exists: {jar}. Try_num: {try_num}")
 				print(f"Retrying in {s}")
 				time.sleep(s)
 				unzip({version: [jar]}, try_num=try_num+1)
