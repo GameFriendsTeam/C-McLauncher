@@ -14,9 +14,9 @@ A lightweight Minecraft launcher built with Python 3.12.
     - [ ] Add optional download of fabric and forge
         - [ ] Fabric
         - [x] Forge (Can't choose)
-    - [ ] Improve authentication
+    - [x] Improve authentication
         - [x] Fix opening browser on Android
-        - [ ] Remember Microsoft account
+        - [x] Remember Microsoft account
     - [ ] Refactoring
     - [x] Add selection version(s) to download
 
