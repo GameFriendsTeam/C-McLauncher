@@ -5,3 +5,4 @@ packaging
 resource
 pypresence
 aiofiles
+Loguru

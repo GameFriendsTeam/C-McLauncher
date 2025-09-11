@@ -1,6 +1,7 @@
 import asyncio
 import os
 from api.tools import download_file
+from loguru import logger
 
 def download_libs(q, lib_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 	libraries = {}
@@ -41,7 +42,7 @@ def download_libs(q, lib_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 
 			if need_download:
 				os.makedirs(lib_clean_path, exist_ok=True)
-				print(f"Downloading libraries: {str(round(current_lib_int/libs_count*100))}% | {str(round(current_ver_int/ver_count*100))}%"+" "*10, end="\r", flush=True)
-				asyncio.run(download_file(lib_url, lib_full_path))
+				logger.info(f"Downloading libraries: {str(round(current_lib_int/libs_count*100))}% | {str(round(current_ver_int/ver_count*100))}%"+" "*10, end="\r", flush=True)
+				asyncio.run(download_file(lib_url, lib_full_path, logger))
 
 	q.put(libraries)

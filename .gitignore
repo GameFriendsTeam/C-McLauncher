@@ -1,8 +1,9 @@
+api/__pycache__
+update_repo.cmd
+update_repo.sh
 .minecraft/
 .vscode/
 logs/
-api/__pycache__
-java
-update_repo.cmd
-update_repo.sh
-.txt
+java/
+.log
+.json

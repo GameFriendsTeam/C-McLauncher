@@ -1,6 +1,7 @@
 import asyncio
 import os
 from api.tools import download_file
+from loguru import logger
 
 def download_game(q, ver_dir, releases: dict[str, str]):
 	versions = {}
@@ -23,7 +24,7 @@ def download_game(q, ver_dir, releases: dict[str, str]):
 		if os.path.exists(file_path): continue
 
 		if need_download:
-			print(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%"+" "*10, end="\r", flush=True)
-			asyncio.run(download_file(url, file_path))
+			logger.info(f"Downloading versions: {str(round(current_ver_int/ver_count*100))}%"+" "*10, end="\r", flush=True)
+			asyncio.run(download_file(url, file_path, logger))
 
 	q.put(versions)

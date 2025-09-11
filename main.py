@@ -1,5 +1,5 @@
-from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, run_process, send_get, get_args, setup_args, run_ds_rpc
-import requests, json, os, tqdm, time, pathlib, zipfile, math
+from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, send_get, get_args, setup_args, run_ds_rpc
+import json, os, time, pathlib, sys, asyncio, time
 from api.java import download_java_manifests
 from api.natives import download_natives
 from api.assets import download_indexes
@@ -8,37 +8,39 @@ from api.game import download_game
 from api.auth import get_account
 from platform import system
 import multiprocessing as mp
-import subprocess
-import time
-import asyncio
+from loguru import logger
 
-os_name = system().lower()
-os_name = os_name.replace("darwin", "mac-os")
-os_name = os_name if not os.path.exists("/storage") else "android"
+os_name = system().lower().replace("darwin", "mac-os") if not os.path.exists("/storage") else "android"
 
 # Setting defaults dirs
 
 root_dir = pathlib.Path("./")
 path_for_java = pathlib.Path(root_dir if os.name != "android" else pathlib.Path.home())
 
-
-
 game_root_dir = str(pathlib.Path(f"{root_dir}/.minecraft"))
-
-if not os.path.exists(game_root_dir):
-	os.makedirs(game_root_dir, exist_ok=True)
-
 ver_dir = str(pathlib.Path(str(game_root_dir) + "/versions"))
 lib_dir = str(pathlib.Path(str(game_root_dir) + "/libraries"))
 assets_dir = str(pathlib.Path(str(game_root_dir) + "/assets"))
-java_dir = str(pathlib.Path(str(path_for_java) + f"/{"" if os.name != "android" else "."}java"))
+java_prefix = "." if os.name == "android" else ""
+java_dir = str(pathlib.Path(str(path_for_java) + f"/{java_prefix}java"))
 game_dir = str(pathlib.Path(str(game_root_dir) + "/home"))
 
+
+os.makedirs(game_root_dir, exist_ok=True)
 os.makedirs(ver_dir, exist_ok=True)
 os.makedirs(lib_dir, exist_ok=True)
 os.makedirs(assets_dir, exist_ok=True)
 os.makedirs(java_dir, exist_ok=True)
 os.makedirs(game_dir, exist_ok=True)
+
+
+# Setting Logger
+log_format = "<green>[{time:HH:mm:ss.SSS} | </><lvl>{level}</><green>]</> {message}"
+
+logger.remove()
+#logger.add("logs/launcher.log", format=log_format, compression="zip")
+logger.add(sys.stdout, format=log_format, colorize=True)
+
 
 ###############
 #  Functions  #
@@ -50,7 +52,7 @@ def start_mine(
 		java_path, Xms, Xmx, 
 		width: int = 925, height: int = 525
 	) -> str:
-	global assets_dir, ver_dir, game_root_dir
+	global assets_dir, ver_dir, game_root_dir, logger
 	jvm_args = [f"-Xms{Xms}", f"-Xmx{Xmx}", "-Dfile.encoding=UTF-8"]
 	classpath = build_classpath(version, pathlib.Path(mc_dir), version_data, game_root_dir)
 	asset_index = version_data["assetIndex"]["id"]
@@ -63,7 +65,7 @@ def start_mine(
 	main_class = version_data["mainClass"]
 	natives_dir = normalize_path(os.path.abspath(f"{ver_dir}/{version}/natives"))
 
-	cmd_line = [os.path.abspath(java_path)]
+	cmd_line = [normalize_path(java_path)]
 	cmd_line.extend(jvm_args)
 	cmd_line.append(f"-Djava.library.path={natives_dir}")
 	cmd_line.append("-cp")
@@ -75,7 +77,7 @@ def start_mine(
 	cmd_line.append(f"--height={str(height)}")
 
 	print("")
-	print("Command line JVM:")
+	logger.info("Command line JVM:")
 	print("\n".join(cmd_line))
 	print("")
 
@@ -83,19 +85,19 @@ def start_mine(
 	import subprocess
 	try:
 		result = subprocess.run([os.path.abspath(java_path), "-version"], capture_output=True, text=True)
-		print(result.stderr.strip() or result.stdout.strip())
+		logger.info(result.stderr.strip() or result.stdout.strip())
 	except Exception as e:
-		print(f"Error starting java -version: {e}")
+		logger.error(f"Error starting java -version: {e}")
 
-	print(f"\nContents of the natives folder ({natives_dir}):")
+	logger.info(f"\nContents of the natives folder ({natives_dir}):")
 	try:
 		for f in os.listdir(natives_dir):
 			if f.lower().endswith('.dll') or f.lower().endswith(".so"):
 				print("  ", f)
 	except Exception as e:
-		print(f"Error listing natives: {e}")
+		logger.error(f"Error listing natives: {e}")
 
-	print("Increasing file limits (only for Linux)...")
+	logger.info("Increasing file limits (only for Linux)...")
 	increase_file_limits()
 
 	print("")
@@ -123,15 +125,33 @@ def main():
 		rpc = run_ds_rpc()
 	rpc_time = time.time()
 
+	versions = input("Enter minecraft versions for download(split witch \";\", or enter \"All\"): ")
+
+	version = arg_version
+	if version == "":
+		if not rpc is None:
+			rpc.update(
+				state="select version",
+				large_image="launcher",
+				small_image="python_logo",
+				start=rpc_time
+			)
+		
+		version = input("Select version of minecraft: ")
+
+	for_download = [x for x in versions.split(";") if x != ""]
+	if versions == "" or versions == "All":
+		for_download = []
+
 	#####################
 	#  Print base data  #
 	#####################
 
-	print(f"You're OS: {os_name}")
-	print(F"Versions dir: {ver_dir}")
-	print(f"Libraries dir: {lib_dir}")
-	print(f"Assets dir: {assets_dir}")
-	print(f"Game root dir: {game_dir}")
+	logger.info(f"You're OS: {os_name.capitalize()}")
+	logger.info(F"Versions dir: {ver_dir}")
+	logger.info(f"Libraries dir: {lib_dir}")
+	logger.info(f"Assets dir: {assets_dir}")
+	logger.info(f"Game root dir: {game_dir}")
 
 	#######################
 	#  Request to Mojang  #
@@ -150,6 +170,9 @@ def main():
 	for ver in data:
 		if ver["type"] != "release": continue
 		releases[ver["id"]] = ver["url"]
+
+	if len(for_download) > 0:
+		releases = {x:y for x,y in releases.items() if x in for_download}
 
 	#########################
 	#  Initialize versions  #
@@ -174,7 +197,7 @@ def main():
 		if not os.path.exists(f"{ver_dir}/{release}"):
 			os.mkdir(f"{ver_dir}/{release}")
 
-		asyncio.run(download_file(url, file))
+		asyncio.run(download_file(url, file, logger))
 
 		if not os.path.exists(file): continue
 
@@ -239,27 +262,27 @@ def main():
 	#####################
 	#  Start minecraft  #
 	#####################
-	print("Waiting game..."+" "*10)
+	logger.info("Waiting game..."+" "*10)
 	game_versions = q0.get()
 	p0.join()
 	p0.close()
 
-	print("Waiting libraries..."+" "*10)
+	logger.info("Waiting libraries..."+" "*10)
 	libraries = q1.get()
 	p1.join()
 	p1.close()
 
-	print("Waiting assets..."+" "*10)
+	logger.info("Waiting assets..."+" "*10)
 	indexes, assets = q2.get()
 	p2.join()
 	p2.close()
 
-	print("Waiting natives..."+" "*10)
+	logger.info("Waiting natives..."+" "*10)
 	natives = q3.get()
 	p3.join()
 	p3.close()
 
-	print("Waiting java..."+" "*10)
+	logger.info("Waiting java..."+" "*10)
 	javas = q4.get()
 	p4.join()
 	p4.close()
@@ -284,20 +307,6 @@ def main():
 		account_username = account_data["username"]
 		account_uuid = account_data["uuid"]
 		account_at = account_data["access_token"]
-
-
-	if arg_version != "":
-		version = arg_version
-	else:
-		if not rpc is None:
-			rpc.update(
-				state="select version",
-				large_image="launcher",
-				small_image="python_logo",
-				start=rpc_time
-			)
-		
-		version = input("Select version of minecraft: ")
 
 	if arg_username != "":
 		username = arg_username
@@ -331,9 +340,6 @@ def main():
 	xms = str(int(input("Enter minimum RAM (in Megabytes): ")))+"M" if arg_xms == "" else arg_xms
 
 	java_run_path = normalize_path(java_dir + "/" + java_codename + f"/bin/java{'' if debug else 'w'}{'.exe' if os.name == 'nt' else ''}")
-
-	# Xms - min mem
-	# Xmx - max mem
 
 	uuid = account_uuid if auth_enable else "00000000-0000-0000-0000-000000000000"
 	assets_token = account_at if auth_enable else 0

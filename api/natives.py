@@ -3,6 +3,7 @@ import os, json
 import time
 from api.tools import download_file, normalize_path, unzip_jar
 from urllib.parse import urlparse
+from loguru import logger
 
 def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -> dict[str, list]:
 	natives = {}
@@ -50,7 +51,7 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 				if os.path.exists(file_path):
 					continue
 
-				asyncio.run(download_file(url, str(file_path)))
+				asyncio.run(download_file(url, str(file_path), logger))
 				natives[version].append(file_path)
 
 			# --- Новый формат Mojang: по ключу rules ---
@@ -71,7 +72,7 @@ def download_natives(q, ver_dir: str, releases: dict[str, dict], os_name: str) -
 							if os.path.exists(file_path):
 								continue
 
-						asyncio.run(download_file(url, str(file_path)))
+						asyncio.run(download_file(url, str(file_path), logger))
 						natives[version].append(file_path)
 
 	unzip(natives)
@@ -84,7 +85,7 @@ def unzip(jar_files: dict[str, list[str]], s: int = 3, try_num: int = 3):
 				dir = os.path.dirname(jar)
 				unzip_jar(jar, dir)
 			except FileNotFoundError as e:
-				print(f"File not exists: {jar}. Try_num: {try_num}")
-				print(f"Retrying in {s}")
+				logger.error(f"File not exists: {jar}. Try_num: {try_num}")
+				logger.error(f"Retrying in {s}")
 				time.sleep(s)
 				unzip({version: [jar]}, try_num=try_num+1)

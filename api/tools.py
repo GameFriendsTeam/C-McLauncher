@@ -1,3 +1,4 @@
+from platform import system
 import base64, inspect, pickle, subprocess, zipfile
 import os, httpx, time, pathlib, sys, argparse, traceback
 from urllib.parse import urlparse
@@ -5,24 +6,27 @@ from annotated_types import T
 from typing import Callable
 import aiofiles
 
-def run_ds_rpc():
+def open_browser(url):
+	os_name = system().lower().replace("darwin", "mac-os") if not os.path.exists("/storage") else "android"
+
+	if os_name == "android":
+		cmd = f"am start --user 0 -a android.intent.action.VIEW -d {url}"
+		os.system(cmd)
+		return
+
+	import webbrowser
+	webbrowser.open(url)
+
+def run_ds_rpc(state="Run launcher"):
 	import pypresence
 	rpc = pypresence.Presence(1405904528062283977)
 	rpc.connect()
-
-	rpc.update(
-		state="Run launcher",
-		large_image="launcher",
-		small_image="python_logo"
-	)
-
+	rpc.update(state=state, large_image="launcher", small_image="python_logo")
 	return rpc
 
 def normalize_path(p: str) -> str:
     normalized_path = os.path.normpath(p)
-    
-    if os.name == "nt":
-        return normalized_path.replace('/', '\\')
+    if os.name == "nt": return normalized_path.replace('/', '\\')
     return normalized_path.replace('\\', '/')
 
 def build_classpath(mc_ver, mc_dir, version_data, root_dir):
@@ -135,7 +139,7 @@ def get_args(
 	return game_args
 
 
-async def download_file(url: str, filename: str, s: int = 3, attempts: int = 3):
+async def download_file(url: str, filename: str, logger, s: int = 3, attempts: int = 3):
 
 	filename = pathlib.Path(filename)
 	dir_path = filename.parent
@@ -154,14 +158,17 @@ async def download_file(url: str, filename: str, s: int = 3, attempts: int = 3):
 		return
 	
 	except httpx.HTTPError as e:
-		print(f"Error downloading {filename}: {e}. Attempts left: {attempts}")
+		logger.error(f"downloading {filename} from {e.request.url}: {e}. Attempts left: {attempts}")
 		if attempts > 0:
-			print(f"Retrying in {s}s...")
+			logger.warning(f"Retrying in {s}s...")
 			time.sleep(s)
-			await download_file(url, filename, s, attempts-1)
+			await download_file(url, filename, logger, s, attempts-1)
+		else:
+			traceback.print_stack()
+			raise e
 
 	except PermissionError as e:
-		print(f"[PermissionError] {e}")
+		logger.error(f"[PermissionError] {e}")
 		traceback.print_stack()
 		raise e
 
@@ -175,11 +182,14 @@ def send_get(url: str, s: int = 3, attempts: int = 3) -> str:
 			content = response.text
 
 	except httpx.HTTPError as e:
-		print(f"Error getting data from {url}: {e}. Attempts left: {attempts}")
+		print(f"Error getting data from {e.request.url}: {e}. Attempts left: {attempts}")
 		if attempts > 0:
 			print(f"Retrying in {s}s...")
 			time.sleep(s)
 			content = send_get(url, s, attempts-1)
+		else:
+			traceback.print_stack()
+			raise httpx.ConnectTimeout(f"{e} witch url {e.request.url}")
 
 	return content
 

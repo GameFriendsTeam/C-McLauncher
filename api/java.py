@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 from api.tools import download_file, normalize_path, run_with_root
+from loguru import logger
 
 def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> dict[str, str]:
 	javas = {}
@@ -23,7 +24,7 @@ def download_java_manifests(q, java_dir: str, runtime_data: dict[str, dict]) -> 
 
 		os.makedirs(jre_dir, exist_ok=True)
 
-		asyncio.run(download_file(url, file_path))
+		asyncio.run(download_file(url, file_path, logger))
 
 		with open(file_path, 'r') as f:
 			javas[codename] = json.load(f)
@@ -67,16 +68,16 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 
 					parent_dir = os.path.dirname(full_path)
 					if not os.access(parent_dir, os.W_OK):
-						print(f"Error: {parent_dir} - access denied")
+						logger.error(f"{parent_dir} - access denied")
 						return
 					try:
 						os.symlink(target, full_path)
 						if not os.path.exists(target):
 							raise FileNotFoundError(f"Target not found: {dir_of_java + '/' + target}")
 					except PermissionError as e:
-						print(f"Error: {full_path} - permission denied")
+						logger.error(f"{full_path} - permission denied")
 					except FileNotFoundError as e:
-						print(f"Error: {dir_of_java + '/' + target} not exists")
+						logger.error(f"{dir_of_java + '/' + target} not exists")
 
 				run_with_root(create_link, (full_path, dir_of_java, info))
 
@@ -88,9 +89,9 @@ def download_java(dir_of_java: str, javas: dict[str, dict]):
 
 			if os.path.exists(full_path):
 				continue
-			print(f"Downloading java {str(round(current_local/local_count*100))}% | {str(round(current_global/global_count*100))}%", end="\r")
-			asyncio.run(download_file(url, full_path))
-			print(f"Downloaded {full_path}")
+			logger.info(f"Downloading java {str(round(current_local/local_count*100))}% | {str(round(current_global/global_count*100))}%", end="\r")
+			asyncio.run(download_file(url, full_path, logger))
+			logger.info(f"Downloaded {full_path}")
 
 			if os.name != "nt":
 				try:

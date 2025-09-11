@@ -4,6 +4,7 @@ from pathlib import Path
 from api.tools import get_filename_from_url, download_file, normalize_path
 import multiprocessing as mp
 import asyncio
+from loguru import logger
 
 def download_indexes(q: mp.Queue, indexes_dir: str, releases: dict[str, dict]) -> dict[str, str]:
 	indexes = {}
@@ -26,10 +27,10 @@ def download_indexes(q: mp.Queue, indexes_dir: str, releases: dict[str, dict]) -
 		if os.path.exists(index_path):
 			continue
 
-		print(f"Download assets stage 1/2: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
+		logger.info(f"Download assets stage 1/2: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
 
-		asyncio.run(download_file(asset_url, index_path))
-		print(f"Downloaded {index_path}")
+		asyncio.run(download_file(asset_url, index_path, logger))
+		logger.info(f"Downloaded {index_path}")
 
 	assets = download_assets(str(Path(indexes_dir+"/../objects")), indexes)
 
@@ -58,9 +59,9 @@ def download_assets(assets_dir, downloaded):
 
 				obj_url = "https://resources.download.minecraft.net/" + subdir + "/" + hash
 				os.makedirs(assets_dir + "/" + subdir, exist_ok=True)
-				print(f"Download assets stage 2/2: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
-				asyncio.run(download_file(obj_url, file_path))
-				print(f"Downloaded {obj_name}")
+				logger.info(f"Download assets stage 2/2: {str(round(current/count*100))}%"+" "*10, end="\r", flush=True)
+				asyncio.run(download_file(obj_url, file_path, logger))
+				logger.info(f"Downloaded {obj_name}")
 
 			f.close()
 

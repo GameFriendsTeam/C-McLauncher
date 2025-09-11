@@ -17,7 +17,7 @@ def execute(func_name: str, source, args: tuple, module):
 		result = func(*args)
 		return result
 	except Exception as e:
-		  raise e
+		raise e
 
 if __name__ == "__main__":
 	if os.geteuid() == 0:
