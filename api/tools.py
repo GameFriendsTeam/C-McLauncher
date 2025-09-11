@@ -227,6 +227,7 @@ def setup_args():
 	parser.add_argument("--wight", "-wi", type=int, default=1280)
 	parser.add_argument("--height", "-he", type=int, default=720)
 	parser.add_argument("--enable_rpc", "-rpc", action="store_true", help="Enable Discord RPC (discordrpc installed by pip requirement)")
+	parser.add_argument("--download_versions", "-dv", type=str, help="Download versions. Example: '1.19;1.18.2' or 'All'")
 
 	args = parser.parse_args()
 
@@ -242,11 +243,12 @@ def setup_args():
 	wight = args.wight
 	height = args.height
 	rpc = args.enable_rpc
+	download_versions = args.download_versions
 
 	return (
 		username, version, uuid, assets_token,
 		user_type, debug, xmx, xms, woa,
-		wight, height, rpc
+		wight, height, rpc, download_versions
 	)
 
 def increase_file_limits():

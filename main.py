@@ -118,14 +118,17 @@ def main():
 
 	(arg_username, arg_version, uuid, assets_token,
 	user_type, arg_debug, arg_xmx, arg_xms, woa,
-	width, height, rpc_enable) = setup_args()
+	width, height, rpc_enable, download_versions) = setup_args()
 
 	rpc = None
 	if rpc_enable:
 		rpc = run_ds_rpc()
 	rpc_time = time.time()
 
-	versions = input("Enter minecraft versions for download(split witch \";\", or enter \"All\"): ")
+	versions = download_versions
+	if versions == "" or versions == None:
+		versions = input("Enter minecraft versions for download(split witch \";\", or enter \"All\"): ")
+	print(versions)
 
 	version = arg_version
 	if version == "":
