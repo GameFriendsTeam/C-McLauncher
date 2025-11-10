@@ -52,7 +52,6 @@ def start_mine(
 		java_path, Xms, Xmx, 
 		width: int = 925, height: int = 525
 	) -> str:
-	global assets_dir, ver_dir, game_root_dir, logger
 	jvm_args = [f"-Xms{Xms}", f"-Xmx{Xmx}", "-Dfile.encoding=UTF-8"]
 	classpath = build_classpath(version, pathlib.Path(mc_dir), version_data, game_root_dir)
 	asset_index = version_data["assetIndex"]["id"]
@@ -114,8 +113,6 @@ def join_all(th_s):
 ##########
 
 def main():
-	global ver_dir, lib_dir, assets_dir, game_dir, os_name
-
 	(arg_username, arg_version, uuid, assets_token,
 	user_type, arg_debug, arg_xmx, arg_xms, woa,
 	width, height, rpc_enable, download_versions) = setup_args()
