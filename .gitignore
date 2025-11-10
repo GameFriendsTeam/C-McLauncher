@@ -7,3 +7,4 @@ logs/
 java/
 .log
 .json
+account_data.json
