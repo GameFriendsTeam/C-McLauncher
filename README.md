@@ -27,7 +27,7 @@ A lightweight Minecraft launcher built with Python 3.12.
 ## 🔧 Installation
 1. Clone this repository:
 ```bash
-git clone https://github.com/your-username/C-McLauncher.git
+git clone https://github.com/GameFriendsTeam/C-McLauncher.git
 cd C-McLauncher
 ```
 2. Install dependencies:
