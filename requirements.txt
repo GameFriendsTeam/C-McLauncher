@@ -6,3 +6,4 @@ resource
 pypresence
 aiofiles
 Loguru
+requests
