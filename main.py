@@ -1,5 +1,5 @@
-from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, run_process, send_get, get_args, setup_args, run_ds_rpc
-import requests, json, os, tqdm, time, pathlib, zipfile, math
+from api.tools import build_classpath, download_file, increase_file_limits, normalize_path, send_get, get_args, setup_args, run_ds_rpc
+import json, os, time, pathlib
 from api.java import download_java_manifests
 from api.natives import download_natives
 from api.assets import download_indexes
@@ -111,12 +111,28 @@ def join_all(th_s):
 #  Main  #
 ##########
 
-def main():
+def main(
+		user_name: str, vers: str, u_uid: str, assect: int,
+		user_t: str, d_mode: bool, mem_xmx: str, mem_xms: str, no_auth: bool,
+		w: int, h: int, rpc_e):
 	global ver_dir, lib_dir, assets_dir, game_dir, os_name
 
 	(arg_username, arg_version, uuid, assets_token,
 	user_type, arg_debug, arg_xmx, arg_xms, woa,
 	width, height, rpc_enable) = setup_args()
+
+	arg_username = arg_username if arg_username != None else user_name
+	arg_version = arg_version if arg_version != None else vers
+	uuid = uuid if uuid != None else u_uid
+	assets_token = assets_token if assets_token != None else assect
+	user_type = user_type if user_type != None else user_t
+	arg_debug = arg_debug if arg_debug != None else d_mode
+	arg_xmx = arg_xmx if arg_xmx != None else mem_xmx
+	arg_xms = arg_xms if arg_xms != None else mem_xms
+	woa = woa if woa != None else no_auth
+	width = width if width != None else w
+	height = height if height != None else h
+	rpc_enable = rpc_enable if rpc_enable != None else rpc_e
 
 	rpc = None
 	if rpc_enable:

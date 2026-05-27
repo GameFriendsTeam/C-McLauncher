@@ -6,3 +6,4 @@ java
 update_repo.cmd
 update_repo.sh
 .txt
+.venv
