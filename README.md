@@ -13,7 +13,7 @@ A lightweight Minecraft launcher built with Python 3.12.
     - [x] Support for Loguru
     - [ ] Add optional download of fabric and forge
         - [ ] Fabric
-        - [x] Forge (Can't choose)
+        - [x] Forge (Can't be choose)
     - [x] Improve authentication
         - [x] Fix opening browser on Android
         - [x] Remember Microsoft account
