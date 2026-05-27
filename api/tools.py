@@ -243,7 +243,7 @@ def setup_args():
 	wight = args.wight
 	height = args.height
 	rpc = args.enable_rpc
-	download_versions = args.download_versions
+	download_versions = args.download_versions.split(";") if args.download_versions else []
 
 	return (
 		username, version, uuid, assets_token,

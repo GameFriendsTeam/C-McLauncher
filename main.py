@@ -113,11 +113,12 @@ def join_all(th_s):
 def main(
 		user_name: str, vers: str, u_uid: str, assect: int,
 		user_t: str, d_mode: bool, mem_xmx: str, mem_xms: str, no_auth: bool,
-		w: int, h: int, rpc_e):
+		w: int, h: int, rpc_e: bool, dv: list[str]
+):
 
 	(arg_username, arg_version, uuid, assets_token,
 	user_type, arg_debug, arg_xmx, arg_xms, woa,
-	width, height, rpc_enable) = setup_args()
+	width, height, rpc_enable, download_versions) = setup_args()
 
 	arg_username = arg_username if arg_username != None else user_name
 	arg_version = arg_version if arg_version != None else vers
@@ -131,6 +132,15 @@ def main(
 	width = width if width != None else w
 	height = height if height != None else h
 	rpc_enable = rpc_enable if rpc_enable != None else rpc_e
+	download_versions = download_versions if download_versions != None else dv
+
+	if download_versions == []:
+		print("No versions specified for download, all versions will be downloaded")
+		return
+	
+	if arg_version != "" and not arg_version in download_versions:
+		print(f"Specified version {arg_version} is not in the list of versions to download, it will be downloaded")
+		return
 
 	rpc = None
 	if rpc_enable:
@@ -178,6 +188,7 @@ def main(
 
 	for release, url in releases.items():
 		file = f"{ver_dir}/{release}/{release}.json"
+		if not release in download_versions: continue
 
 		if os.path.exists(f"{ver_dir}/{release}/{release}.json"):
 			with open(file, 'r') as f:
