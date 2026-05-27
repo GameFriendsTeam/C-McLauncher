@@ -2,9 +2,10 @@ api/__pycache__
 update_repo.cmd
 update_repo.sh
 .minecraft/
-.vscode/
 logs/
 java/
-.log
-.json
 account_data.json
+.vscode/
+.json
+.txt
+.venv
