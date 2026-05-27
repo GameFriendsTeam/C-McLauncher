@@ -112,9 +112,9 @@ def join_all(th_s):
 ##########
 
 def main(
-		user_name, vers, u_uid, assect,
-		user_t, d_mode, mem_xmx, mem_xms, no_auth: bool,
-		w, h, rpc_e):
+		user_name: str, vers: str, u_uid: str, assect: int,
+		user_t: str, d_mode: bool, mem_xmx: str, mem_xms: str, no_auth: bool,
+		w: int, h: int, rpc_e):
 	global ver_dir, lib_dir, assets_dir, game_dir, os_name
 
 	(arg_username, arg_version, uuid, assets_token,
@@ -125,7 +125,7 @@ def main(
 	arg_version = arg_version if arg_version != None else vers
 	uuid = uuid if uuid != None else u_uid
 	assets_token = assets_token if assets_token != None else assect
-	user_type == user_type if user_type != None else user_t
+	user_type = user_type if user_type != None else user_t
 	arg_debug = arg_debug if arg_debug != None else d_mode
 	arg_xmx = arg_xmx if arg_xmx != None else mem_xmx
 	arg_xms = arg_xms if arg_xms != None else mem_xms
