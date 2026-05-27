@@ -10,11 +10,15 @@ A lightweight Minecraft launcher built with Python 3.12.
 - 💻 Simple CLI interface
 - 🐍 Python 3.12+ compatibility
 - 📣 Next steps:
-    - [ ] Support for Loguru
+    - [x] Support for Loguru
     - [ ] Add optional download of fabric and forge
-    - [ ] Improve authentication
+        - [ ] Fabric
+        - [x] Forge (Can't choose)
+    - [x] Improve authentication
+        - [x] Fix opening browser on Android
+        - [x] Remember Microsoft account
     - [ ] Refactoring
-    - [ ] Add selection version(s) to download
+    - [x] Add selection version(s) to download
 
 ## 📋 Requirements
 - Python 3.12+
@@ -23,7 +27,7 @@ A lightweight Minecraft launcher built with Python 3.12.
 ## 🔧 Installation
 1. Clone this repository:
 ```bash
-git clone https://github.com/your-username/C-McLauncher.git
+git clone https://github.com/GameFriendsTeam/C-McLauncher.git
 cd C-McLauncher
 ```
 2. Install dependencies:

@@ -5,3 +5,7 @@ packaging
 resource
 pypresence
 aiofiles
+Loguru
+requests
+annotated_types
+requests

@@ -1,7 +1,10 @@
-import json, requests, webbrowser, os
+import json, requests, os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+from api.tools import open_browser
+from loguru import logger
 import threading
+import time
 
 html = """
 <!DOCTYPE html>
@@ -44,7 +47,65 @@ class AuthState:
         self.event = threading.Event()
         self.server = None
 
+class AccountManager:
+    def __init__(self, storage_file="account_data.json"):
+        self.storage_file = storage_file
+    
+    def load_account_data(self):
+        if os.path.exists(self.storage_file):
+            try:
+                with open(self.storage_file, 'r') as f:
+                    return json.load(f)
+            except:
+                pass
+        return None
+    
+    def save_account_data(self, data):
+        with open(self.storage_file, 'w') as f:
+            json.dump(data, f)
+    
+    def is_token_valid(self, account_data):
+        if not account_data or 'expires_at' not in account_data:
+            return False
+        
+        return time.time() < account_data['expires_at'] - 300
+
 def get_account(client_id):
+    manager = AccountManager()
+    account_data = manager.load_account_data()
+    
+    if manager.is_token_valid(account_data):
+        return account_data
+    
+    if account_data and 'refresh_token' in account_data:
+        try:
+            new_data = refresh_token(client_id, account_data['refresh_token'])
+            manager.save_account_data(new_data)
+            return new_data
+        except Exception as e:
+            logger.error(f"Token refresh failed: {e}. Starting new authentication.")
+    
+    return full_authentication(client_id, manager)
+
+def refresh_token(client_id, refresh_token):
+    token_data = {
+        "client_id": client_id,
+        "refresh_token": refresh_token,
+        "grant_type": "refresh_token"
+    }
+    
+    token_response = requests.post(
+        "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
+        data=token_data
+    ).json()
+
+    if "error" in token_response:
+        error_msg = token_response.get('error_description', 'Unknown token error')
+        raise Exception(f"Token refresh error: {error_msg}")
+
+    return get_minecraft_data(token_response)
+
+def full_authentication(client_id, manager):
     redirect_uri = "http://localhost:8080"
     auth_url = (
         f"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?"
@@ -54,10 +115,6 @@ def get_account(client_id):
         "scope=XboxLive.signin%20offline_access&"
         "prompt=select_account"
     )
-
-    data = get_data()
-    if data is not None:
-        return data
 
     class CallbackHandler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -85,8 +142,7 @@ def get_account(client_id):
     server_thread.daemon = True
     server_thread.start()
 
-    print("Server started, opening browser for authorization...")
-    webbrowser.open(auth_url)
+    open_browser(auth_url)
     
     if not auth_state.event.wait(timeout=120):
         auth_state.server.shutdown()
@@ -103,6 +159,7 @@ def get_account(client_id):
         "redirect_uri": redirect_uri,
         "grant_type": "authorization_code"
     }
+    
     token_response = requests.post(
         "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
         data=token_data
@@ -112,6 +169,12 @@ def get_account(client_id):
         error_msg = token_response.get('error_description', 'Unknown token error')
         raise Exception(f"Token error: {error_msg}")
 
+    account_data = get_minecraft_data(token_response)
+    manager.save_account_data(account_data)
+    
+    return account_data
+
+def get_minecraft_data(token_response):
     xbl_payload = {
         "Properties": {
             "AuthMethod": "RPS",
@@ -168,34 +231,14 @@ def get_account(client_id):
         error = profile_response.get("errorMessage", "Failed to get profile")
         raise Exception(f"Profile error: {error}")
 
+    expires_at = time.time() + token_response['expires_in']
+    
     data = {
         "username": profile_response["name"],
         "uuid": profile_response["id"],
-        "access_token": mc_response['access_token']
+        "access_token": mc_response['access_token'],
+        "refresh_token": token_response['refresh_token'],
+        "expires_at": expires_at
     }
-    save_data(data)
 
     return data
-
-file_path = "./.txt"
-
-def get_data() -> dict:
-    global file_path
-    json_data = ""
-
-    if not os.path.exists(file_path): return None
-
-    with open(file_path, "r") as f:
-        json_data = f.read()
-        f.close()
-
-    if json_data == "": return None
-
-    return json.loads(json_data)
-
-def save_data(data: dict):
-    global file_path
-
-    with open(file_path, "wb") as f:
-        f.write(json.dumps(data).encode("utf-8"))
-        f.close()
