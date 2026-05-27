@@ -8,3 +8,4 @@ aiofiles
 Loguru
 requests
 annotated_types
+requests
