@@ -10,6 +10,7 @@ A lightweight Minecraft launcher built with Python 3.12.
 - 💻 Simple CLI interface
 - 🐍 Python 3.12+ compatibility
 - 📣 Next steps:
+    - [ ] !!! Encryping of file with auch data !!!
     - [x] Support for Loguru
     - [ ] Add optional download of fabric and forge
         - [ ] Fabric
